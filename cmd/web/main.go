@@ -16,6 +16,7 @@ type application struct {
 		Get(string) (*models.Deck, error)
 		Find(string) (*models.Deck, error)
 		Update(*models.Deck) error
+		Delete(string) error
 	}
 }
 

@@ -45,3 +45,9 @@ func (m *DeckModel) Get(id string) (*models.Deck, error) {
 	}
 	return d, nil
 }
+
+func (m *DeckModel) Delete(id string) error {
+	stmt := `delete from flcrd.deck where id = $1;`
+	_, err := m.DB.Exec(stmt, id)
+	return err
+}
