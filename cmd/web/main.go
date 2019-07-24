@@ -4,14 +4,16 @@ import (
 	"alexanderpopov.me/flcrd/pkg/models"
 	"alexanderpopov.me/flcrd/pkg/models/pg"
 	"database/sql"
-	"fmt"
 	_ "github.com/lib/pq"
 	"log"
+	"net/http"
+	"time"
 )
 
 type application struct {
 	decks interface {
 		Create(string, string) (*string, error)
+		Get(string) (*models.Deck, error)
 		Find(string) (*models.Deck, error)
 		Update(*models.Deck) error
 	}
@@ -26,28 +28,17 @@ func main() {
 		decks: &pg.DeckModel{DB: db},
 	}
 
-	//id, err := app.decks.Create("My d", "This is my new deck")
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-
-	deck, err := app.decks.Find("My d")
-	if err != nil {
-		log.Fatal(err)
+	srv := &http.Server{
+		Addr:         ":5000",
+		Handler:      app.routes(),
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 
-	fmt.Println(*deck)
-
-	deck.Name = "Updated name"
-	err = app.decks.Update(deck)
-	if err != nil {
-		log.Fatal(err)
-	}
-	deck, err = app.decks.Find("Updated name")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(*deck)
+	log.Println("Server started")
+	err = srv.ListenAndServe()
+	log.Fatal(err)
 }
 
 func connectDB(dsn string) (*sql.DB, error) {

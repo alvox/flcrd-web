@@ -35,3 +35,13 @@ func (m *DeckModel) Update(deck *models.Deck) error {
 	_, err := m.DB.Exec(stmt, deck.Name, deck.Description, deck.ID)
 	return err
 }
+
+func (m *DeckModel) Get(id string) (*models.Deck, error) {
+	stmt := `select id, name, description, created from flcrd.deck where id = $1;`
+	d := &models.Deck{}
+	err := m.DB.QueryRow(stmt, id).Scan(&d.ID, &d.Name, &d.Description, &d.Created)
+	if err != nil {
+		return nil, err
+	}
+	return d, nil
+}
