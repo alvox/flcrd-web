@@ -3,7 +3,6 @@ package pg
 import (
 	"alexanderpopov.me/flcrd/pkg/models"
 	"database/sql"
-	"fmt"
 )
 
 type DeckModel struct {
@@ -11,7 +10,7 @@ type DeckModel struct {
 }
 
 func (m *DeckModel) Create(name, description string) (*string, error) {
-	stmt := fmt.Sprintf(`insert into flcrd.deck (name, description) values ($1, $2) returning id;`)
+	stmt := `insert into flcrd.deck (name, description) values ($1, $2) returning id;`
 	var id string
 	err := m.DB.QueryRow(stmt, name, description).Scan(&id)
 	if err != nil {
@@ -29,4 +28,10 @@ func (m *DeckModel) Find(name string) (*models.Deck, error) {
 		return nil, err
 	}
 	return d, nil
+}
+
+func (m *DeckModel) Update(deck *models.Deck) error {
+	stmt := `update flcrd.deck set name = $1, description = $2 where id = $3;`
+	_, err := m.DB.Exec(stmt, deck.Name, deck.Description, deck.ID)
+	return err
 }

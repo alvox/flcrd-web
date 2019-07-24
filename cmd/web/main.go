@@ -13,6 +13,7 @@ type application struct {
 	decks interface {
 		Create(string, string) (*string, error)
 		Find(string) (*models.Deck, error)
+		Update(*models.Deck) error
 	}
 }
 
@@ -25,16 +26,27 @@ func main() {
 		decks: &pg.DeckModel{DB: db},
 	}
 
-	id, err := app.decks.Create("My d", "This is my new deck")
-	if err != nil {
-		log.Fatal(err)
-	}
+	//id, err := app.decks.Create("My d", "This is my new deck")
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
 
 	deck, err := app.decks.Find("My d")
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	fmt.Println(*deck)
+
+	deck.Name = "Updated name"
+	err = app.decks.Update(deck)
+	if err != nil {
+		log.Fatal(err)
+	}
+	deck, err = app.decks.Find("Updated name")
+	if err != nil {
+		log.Fatal(err)
+	}
 	fmt.Println(*deck)
 }
 
