@@ -18,6 +18,12 @@ type application struct {
 		Update(*models.Deck) error
 		Delete(string) error
 	}
+	flashcards interface {
+		Create(*models.Flashcard) (*string, error)
+		Get(string, string) (*models.Flashcard, error)
+		Update(*models.Flashcard) error
+		Delete(string, string) error
+	}
 }
 
 func main() {
@@ -26,7 +32,8 @@ func main() {
 		log.Fatal(err)
 	}
 	app := &application{
-		decks: &pg.DeckModel{DB: db},
+		decks:      &pg.DeckModel{DB: db},
+		flashcards: &pg.FlashcardModel{DB: db},
 	}
 
 	srv := &http.Server{

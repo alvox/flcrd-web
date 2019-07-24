@@ -8,7 +8,7 @@ import (
 )
 
 func (app *application) createDeck(w http.ResponseWriter, r *http.Request) {
-	deck := readJSON(w, r)
+	deck := readDeck(w, r)
 	if deck == nil {
 		return
 	}
@@ -38,7 +38,7 @@ func (app *application) getDeck(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) updateDeck(w http.ResponseWriter, r *http.Request) {
-	deck := readJSON(w, r)
+	deck := readDeck(w, r)
 	if deck == nil {
 		return
 	}
@@ -79,7 +79,7 @@ func writeJsonResponse(w http.ResponseWriter, obj interface{}) {
 	}
 }
 
-func readJSON(w http.ResponseWriter, r *http.Request) *models.Deck {
+func readDeck(w http.ResponseWriter, r *http.Request) *models.Deck {
 	if r.Body == nil {
 		http.Error(w, "Please, send a request body", http.StatusBadRequest)
 	}
