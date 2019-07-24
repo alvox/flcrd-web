@@ -26,6 +26,7 @@ func (app *application) createDeck(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+	w.WriteHeader(http.StatusCreated)
 	writeJsonResponse(w, deck)
 }
 
