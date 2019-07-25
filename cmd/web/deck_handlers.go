@@ -14,16 +14,26 @@ func (app *application) createDeck(w http.ResponseWriter, r *http.Request) {
 	}
 	id, err := app.decks.Create(deck.Name, deck.Description)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		app.serverError(w, err)
 		return
 	}
 	deck, err = app.decks.Get(*id)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		app.serverError(w, err)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
 	writeJsonResponse(w, deck)
+}
+
+func (app *application) getDecks(w http.ResponseWriter, r *http.Request) {
+	decks, err := app.decks.GetAll()
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	writeJsonResponse(w, decks)
 }
 
 func (app *application) getDeck(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +44,7 @@ func (app *application) getDeck(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		app.serverError(w, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -54,12 +64,12 @@ func (app *application) updateDeck(w http.ResponseWriter, r *http.Request) {
 	}
 	err = app.decks.Update(deck)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		app.serverError(w, err)
 		return
 	}
 	deck, err = app.decks.Get(deck.ID)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		app.serverError(w, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -75,7 +85,7 @@ func (app *application) deleteDeck(w http.ResponseWriter, r *http.Request) {
 	}
 	err = app.decks.Delete(id)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		app.serverError(w, err)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)

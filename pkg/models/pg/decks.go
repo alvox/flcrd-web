@@ -52,6 +52,28 @@ func (m *DeckModel) Get(id string) (*models.Deck, error) {
 	return d, nil
 }
 
+func (m *DeckModel) GetAll() ([]*models.Deck, error) {
+	stmt := `select id, name, description, created from flcrd.deck;`
+	rows, err := m.DB.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	decks := []*models.Deck{}
+	for rows.Next() {
+		d := &models.Deck{}
+		err = rows.Scan(&d.ID, &d.Name, &d.Description, &d.Created)
+		if err != nil {
+			return nil, err
+		}
+		decks = append(decks, d)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return decks, nil
+}
+
 func (m *DeckModel) Delete(id string) error {
 	stmt := `delete from flcrd.deck where id = $1;`
 	_, err := m.DB.Exec(stmt, id)

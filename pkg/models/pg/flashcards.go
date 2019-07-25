@@ -32,6 +32,28 @@ func (m *FlashcardModel) Get(deckID, flashcardID string) (*models.Flashcard, err
 	return c, nil
 }
 
+func (m *FlashcardModel) GetAll(deckID string) ([]*models.Flashcard, error) {
+	stmt := `select id, deck_id, front, rear, created from flcrd.flashcard where deck_id = $1;`
+	rows, err := m.DB.Query(stmt, deckID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	flashcards := []*models.Flashcard{}
+	for rows.Next() {
+		c := &models.Flashcard{}
+		err = rows.Scan(&c.ID, &c.DeckID, &c.Front, &c.Rear, &c.Created)
+		if err != nil {
+			return nil, err
+		}
+		flashcards = append(flashcards, c)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return flashcards, nil
+}
+
 func (m *FlashcardModel) Update(flashcard *models.Flashcard) error {
 	stmt := `update flcrd.flashcard set deck_id = $1, front = $2, rear = $3 where id = $4;`
 	_, err := m.DB.Exec(stmt, flashcard.DeckID, flashcard.Front, flashcard.Rear, flashcard.ID)

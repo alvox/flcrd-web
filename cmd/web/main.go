@@ -14,6 +14,7 @@ type application struct {
 	decks interface {
 		Create(string, string) (*string, error)
 		Get(string) (*models.Deck, error)
+		GetAll() ([]*models.Deck, error)
 		Find(string) (*models.Deck, error)
 		Update(*models.Deck) error
 		Delete(string) error
@@ -21,6 +22,7 @@ type application struct {
 	flashcards interface {
 		Create(*models.Flashcard) (*string, error)
 		Get(string, string) (*models.Flashcard, error)
+		GetAll(string) ([]*models.Flashcard, error)
 		Update(*models.Flashcard) error
 		Delete(string, string) error
 	}
