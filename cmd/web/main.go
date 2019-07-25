@@ -15,7 +15,6 @@ type application struct {
 		Create(string, string) (*string, error)
 		Get(string) (*models.Deck, error)
 		GetAll() ([]*models.Deck, error)
-		Find(string) (*models.Deck, error)
 		Update(*models.Deck) error
 		Delete(string) error
 	}

@@ -22,8 +22,8 @@ create table flcrd.flashcard (
 
 -- DATA --
 insert into flcrd.deck (id, name, description, created) values
-('test_deck_id_1', 'Test Name 1', 'Test Description 1', now()),
-('test_deck_id_2', 'Test Name 2', 'Test Description 2', now());
+('test_deck_id_1', 'Test Name 1', 'Test Description 1', '2019-01-01 10:00:00'),
+('test_deck_id_2', 'Test Name 2', 'Test Description 2', '2019-02-02 12:22:00');
 
 insert into flcrd.flashcard (id, deck_id, front, rear, created) values
 ('test_flashcard_id_1', 'test_deck_id_1', 'Test Front 1 1', 'Test Rear 1 1', now()),

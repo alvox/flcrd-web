@@ -19,23 +19,13 @@ func (m *DeckModel) Create(name, description string) (*string, error) {
 	return &id, nil
 }
 
-func (m *DeckModel) Find(name string) (*models.Deck, error) {
-	stmt := `select id, name, description, created from flcrd.deck 
-    where name = $1;`
-	d := &models.Deck{}
-	err := m.DB.QueryRow(stmt, name).Scan(&d.ID, &d.Name, &d.Description, &d.Created)
-	if err == sql.ErrNoRows {
-		return nil, models.ErrNoRecord
-	}
-	if err != nil {
-		return nil, err
-	}
-	return d, nil
-}
-
 func (m *DeckModel) Update(deck *models.Deck) error {
+	_, err := m.Get(deck.ID)
+	if err != nil {
+		return err
+	}
 	stmt := `update flcrd.deck set name = $1, description = $2 where id = $3;`
-	_, err := m.DB.Exec(stmt, deck.Name, deck.Description, deck.ID)
+	_, err = m.DB.Exec(stmt, deck.Name, deck.Description, deck.ID)
 	return err
 }
 
@@ -49,6 +39,7 @@ func (m *DeckModel) Get(id string) (*models.Deck, error) {
 	if err != nil {
 		return nil, err
 	}
+	d.Created = d.Created.UTC()
 	return d, nil
 }
 
@@ -66,6 +57,7 @@ func (m *DeckModel) GetAll() ([]*models.Deck, error) {
 		if err != nil {
 			return nil, err
 		}
+		d.Created = d.Created.UTC()
 		decks = append(decks, d)
 	}
 	if err = rows.Err(); err != nil {
@@ -75,7 +67,11 @@ func (m *DeckModel) GetAll() ([]*models.Deck, error) {
 }
 
 func (m *DeckModel) Delete(id string) error {
+	_, err := m.Get(id)
+	if err != nil {
+		return err
+	}
 	stmt := `delete from flcrd.deck where id = $1;`
-	_, err := m.DB.Exec(stmt, id)
+	_, err = m.DB.Exec(stmt, id)
 	return err
 }
