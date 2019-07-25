@@ -1,6 +1,11 @@
 package models
 
-import "time"
+import (
+	"errors"
+	"time"
+)
+
+var ErrNoRecord = errors.New("models: no matching record found")
 
 type Flashcard struct {
 	ID      string    `json:"id"`

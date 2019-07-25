@@ -29,6 +29,10 @@ func (app *application) createDeck(w http.ResponseWriter, r *http.Request) {
 func (app *application) getDeck(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["deckID"]
 	deck, err := app.decks.Get(id)
+	if err == models.ErrNoRecord {
+		app.notFound(w)
+		return
+	}
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -42,7 +46,13 @@ func (app *application) updateDeck(w http.ResponseWriter, r *http.Request) {
 	if deck == nil {
 		return
 	}
-	err := app.decks.Update(deck)
+	deckID := mux.Vars(r)["deckID"]
+	_, err := app.decks.Get(deckID)
+	if err == models.ErrNoRecord {
+		app.notFound(w)
+		return
+	}
+	err = app.decks.Update(deck)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -58,7 +68,12 @@ func (app *application) updateDeck(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) deleteDeck(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["deckID"]
-	err := app.decks.Delete(id)
+	_, err := app.decks.Get(id)
+	if err == models.ErrNoRecord {
+		app.notFound(w)
+		return
+	}
+	err = app.decks.Delete(id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

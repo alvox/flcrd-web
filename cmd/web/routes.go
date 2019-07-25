@@ -10,7 +10,7 @@ func (app *application) routes() http.Handler {
 	// Decks
 	router.HandleFunc("/v0/decks", app.createDeck).Methods("POST")
 	router.HandleFunc("/v0/decks/{deckID}", app.getDeck).Methods("GET")
-	router.HandleFunc("/v0/decks", app.updateDeck).Methods("PUT")
+	router.HandleFunc("/v0/decks/{deckID}", app.updateDeck).Methods("PUT")
 	router.HandleFunc("/v0/decks/{deckID}", app.deleteDeck).Methods("DELETE")
 	// Flashcards
 	router.HandleFunc("/v0/decks/{deckID}/flashcards", app.createFlashcard).Methods("POST")

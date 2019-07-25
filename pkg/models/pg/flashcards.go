@@ -23,6 +23,9 @@ func (m *FlashcardModel) Get(deckID, flashcardID string) (*models.Flashcard, err
 	stmt := `select id, deck_id, front, rear, created from flcrd.flashcard where id = $1 and deck_id = $2;`
 	c := &models.Flashcard{}
 	err := m.DB.QueryRow(stmt, flashcardID, deckID).Scan(&c.ID, &c.DeckID, &c.Front, &c.Rear, &c.Created)
+	if err == sql.ErrNoRows {
+		return nil, models.ErrNoRecord
+	}
 	if err != nil {
 		return nil, err
 	}

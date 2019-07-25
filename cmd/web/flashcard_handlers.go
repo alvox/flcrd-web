@@ -3,7 +3,6 @@ package main
 import (
 	"alexanderpopov.me/flcrd/pkg/models"
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -14,24 +13,24 @@ func (app *application) createFlashcard(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	deckID := mux.Vars(r)["deckID"]
-	deck, err := app.decks.Get(deckID)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+	_, err := app.decks.Get(deckID)
+	if err == models.ErrNoRecord {
+		app.notFound(w)
 		return
 	}
-	if deck == nil {
-		w.WriteHeader(http.StatusNotAcceptable)
+	if err != nil {
+		app.serverError(w, err)
 		return
 	}
 	flashcard.DeckID = deckID
 	flashcardID, err := app.flashcards.Create(flashcard)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		app.serverError(w, err)
 		return
 	}
 	flashcard, err = app.flashcards.Get(deckID, *flashcardID)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		app.serverError(w, err)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
@@ -42,8 +41,12 @@ func (app *application) getFlashcard(w http.ResponseWriter, r *http.Request) {
 	deckID := mux.Vars(r)["deckID"]
 	flashcardID := mux.Vars(r)["flashcardID"]
 	flashcard, err := app.flashcards.Get(deckID, flashcardID)
+	if err == models.ErrNoRecord {
+		app.notFound(w)
+		return
+	}
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		app.serverError(w, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -56,49 +59,46 @@ func (app *application) updateFlashcard(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	deckID := mux.Vars(r)["deckID"]
-	deck, err := app.decks.Get(deckID)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+	_, err := app.decks.Get(deckID)
+	if err == models.ErrNoRecord {
+		app.notFound(w)
 		return
 	}
-	if deck == nil {
-		w.WriteHeader(http.StatusNotFound)
+	if err != nil {
+		app.serverError(w, err)
 		return
 	}
 	flashcardID := mux.Vars(r)["flashcardID"]
 	flashcard.ID = flashcardID
 	err = app.flashcards.Update(flashcard)
 	if err != nil {
-		fmt.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		app.serverError(w, err)
 		return
 	}
 	flashcard, err = app.flashcards.Get(flashcard.DeckID, flashcard.ID)
 	if err != nil {
-		fmt.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		app.serverError(w, err)
 		return
 	}
-	fmt.Println(flashcard)
 	w.WriteHeader(http.StatusOK)
 	writeJsonResponse(w, flashcard)
 }
 
 func (app *application) deleteFlashcard(w http.ResponseWriter, r *http.Request) {
 	deckID := mux.Vars(r)["deckID"]
-	deck, err := app.decks.Get(deckID)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+	_, err := app.decks.Get(deckID)
+	if err == models.ErrNoRecord {
+		app.notFound(w)
 		return
 	}
-	if deck == nil {
-		w.WriteHeader(http.StatusNotFound)
+	if err != nil {
+		app.serverError(w, err)
 		return
 	}
 	flashcardID := mux.Vars(r)["flashcardID"]
 	err = app.flashcards.Delete(deckID, flashcardID)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		app.serverError(w, err)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
