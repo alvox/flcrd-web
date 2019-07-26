@@ -7,6 +7,7 @@ import (
 	_ "github.com/lib/pq"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -25,16 +26,23 @@ type application struct {
 		Update(*models.Flashcard) error
 		Delete(string, string) error
 	}
+	infoLog  *log.Logger
+	errorLog *log.Logger
 }
 
 func main() {
+	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+
 	db, err := connectDB("postgres://flcrd:flcrd@localhost/flcrd?sslmode=disable")
 	if err != nil {
-		log.Fatal(err)
+		errorLog.Fatal(err)
 	}
 	app := &application{
 		decks:      &pg.DeckModel{DB: db},
 		flashcards: &pg.FlashcardModel{DB: db},
+		infoLog:    infoLog,
+		errorLog:   errorLog,
 	}
 
 	srv := &http.Server{
@@ -45,9 +53,9 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 	}
 
-	log.Println("Server started")
+	infoLog.Printf("Starting server on %s port", ":5000")
 	err = srv.ListenAndServe()
-	log.Fatal(err)
+	errorLog.Fatal(err)
 }
 
 func connectDB(dsn string) (*sql.DB, error) {

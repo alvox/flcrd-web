@@ -7,6 +7,8 @@ import (
 
 func (app *application) routes() http.Handler {
 	router := mux.NewRouter()
+	// Middleware
+	router.Use(app.logRequest)
 	// Decks
 	router.HandleFunc("/v0/decks", app.createDeck).Methods("POST")
 	router.HandleFunc("/v0/decks", app.getDecks).Methods("GET")
