@@ -6,6 +6,7 @@ import (
 )
 
 var ErrNoRecord = errors.New("models: no matching record found")
+var ErrDeckNotFound = errors.New("models: deck does not exist")
 
 type Flashcard struct {
 	ID      string    `json:"id"`

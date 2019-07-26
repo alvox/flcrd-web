@@ -26,8 +26,8 @@ insert into flcrd.deck (id, name, description, created) values
 ('test_deck_id_2', 'Test Name 2', 'Test Description 2', '2019-02-02 12:22:00');
 
 insert into flcrd.flashcard (id, deck_id, front, rear, created) values
-('test_flashcard_id_1', 'test_deck_id_1', 'Test Front 1 1', 'Test Rear 1 1', now()),
+('test_flashcard_id_1', 'test_deck_id_1', 'Test Front 1 1', 'Test Rear 1 1', '2019-01-01 10:00:00'),
 ('test_flashcard_id_2', 'test_deck_id_1', 'Test Front 1 2', 'Test Rear 1 2', now()),
 ('test_flashcard_id_3', 'test_deck_id_1', 'Test Front 1 3', 'Test Rear 1 3', now()),
 ('test_flashcard_id_4', 'test_deck_id_2', 'Test Front 2 1', 'Test Rear 2 1', now()),
-('test_flashcard_id_5', 'test_deck_id_2', 'Test Front 2 2', 'Test Rear 2 2', now());
+('test_flashcard_id_5', 'test_deck_id_2', 'Test Front 2 2', 'Test Rear 2 2', '2019-05-05 15:55:00');

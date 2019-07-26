@@ -3,6 +3,7 @@ package pg
 import (
 	"alexanderpopov.me/flcrd/pkg/models"
 	"database/sql"
+	"github.com/lib/pq"
 )
 
 type FlashcardModel struct {
@@ -14,6 +15,11 @@ func (m *FlashcardModel) Create(flashcard *models.Flashcard) (*string, error) {
 	var id string
 	err := m.DB.QueryRow(stmt, flashcard.DeckID, flashcard.Front, flashcard.Rear).Scan(&id)
 	if err != nil {
+		if err, ok := err.(*pq.Error); ok {
+			if "foreign_key_violation" == err.Code.Name() {
+				return nil, models.ErrDeckNotFound
+			}
+		}
 		return nil, err
 	}
 	return &id, nil
@@ -29,6 +35,7 @@ func (m *FlashcardModel) Get(deckID, flashcardID string) (*models.Flashcard, err
 	if err != nil {
 		return nil, err
 	}
+	c.Created = c.Created.UTC()
 	return c, nil
 }
 
@@ -46,6 +53,7 @@ func (m *FlashcardModel) GetAll(deckID string) ([]*models.Flashcard, error) {
 		if err != nil {
 			return nil, err
 		}
+		c.Created = c.Created.UTC()
 		flashcards = append(flashcards, c)
 	}
 	if err = rows.Err(); err != nil {
@@ -56,12 +64,31 @@ func (m *FlashcardModel) GetAll(deckID string) ([]*models.Flashcard, error) {
 
 func (m *FlashcardModel) Update(flashcard *models.Flashcard) error {
 	stmt := `update flcrd.flashcard set deck_id = $1, front = $2, rear = $3 where id = $4;`
-	_, err := m.DB.Exec(stmt, flashcard.DeckID, flashcard.Front, flashcard.Rear, flashcard.ID)
-	return err
+	r, err := m.DB.Exec(stmt, flashcard.DeckID, flashcard.Front, flashcard.Rear, flashcard.ID)
+	if err != nil {
+		if err, ok := err.(*pq.Error); ok {
+			if "foreign_key_violation" == err.Code.Name() {
+				return models.ErrDeckNotFound
+			}
+		}
+		return err
+	}
+	i, err := r.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if i == 0 {
+		return models.ErrNoRecord
+	}
+	return nil
 }
 
 func (m *FlashcardModel) Delete(deckID, flashcardID string) error {
+	_, err := m.Get(deckID, flashcardID)
+	if err != nil {
+		return err
+	}
 	stmt := `delete from flcrd.flashcard where id = $1 and deck_id = $2;`
-	_, err := m.DB.Exec(stmt, flashcardID, deckID)
+	_, err = m.DB.Exec(stmt, flashcardID, deckID)
 	return err
 }

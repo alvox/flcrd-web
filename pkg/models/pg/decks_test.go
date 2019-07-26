@@ -8,6 +8,20 @@ import (
 	"time"
 )
 
+var testDecks = [2]*models.Deck{
+	{
+		ID:          "test_deck_id_1",
+		Name:        "Test Name 1",
+		Description: "Test Description 1",
+		Created:     time.Date(2019, 1, 1, 10, 0, 0, 0, time.UTC),
+	}, {
+		ID:          "test_deck_id_2",
+		Name:        "Test Name 2",
+		Description: "Test Description 2",
+		Created:     time.Date(2019, 2, 2, 12, 22, 0, 0, time.UTC),
+	},
+}
+
 func TestDeckModel_Create_Positive(t *testing.T) {
 	if testing.Short() {
 		t.Skip("pg: skipping database test")
@@ -43,25 +57,15 @@ func TestDeckModel_Get(t *testing.T) {
 		wantError error
 	}{
 		{
-			name:   "Deck 1",
-			deckId: "test_deck_id_1",
-			wantDeck: &models.Deck{
-				ID:          "test_deck_id_1",
-				Name:        "Test Name 1",
-				Description: "Test Description 1",
-				Created:     time.Date(2019, 1, 1, 10, 0, 0, 0, time.UTC),
-			},
+			name:      "Deck 1",
+			deckId:    "test_deck_id_1",
+			wantDeck:  testDecks[0],
 			wantError: nil,
 		},
 		{
-			name:   "Deck 2",
-			deckId: "test_deck_id_2",
-			wantDeck: &models.Deck{
-				ID:          "test_deck_id_2",
-				Name:        "Test Name 2",
-				Description: "Test Description 2",
-				Created:     time.Date(2019, 2, 2, 12, 22, 0, 0, time.UTC),
-			},
+			name:      "Deck 2",
+			deckId:    "test_deck_id_2",
+			wantDeck:  testDecks[1],
 			wantError: nil,
 		},
 		{
@@ -94,24 +98,11 @@ func TestDeckModel_GetAll_Positive(t *testing.T) {
 	db, teardown := newTestDB(t)
 	defer teardown()
 	model := DeckModel{db}
-	expectedDecks := [2]*models.Deck{
-		{
-			ID:          "test_deck_id_1",
-			Name:        "Test Name 1",
-			Description: "Test Description 1",
-			Created:     time.Date(2019, 1, 1, 10, 0, 0, 0, time.UTC),
-		}, {
-			ID:          "test_deck_id_2",
-			Name:        "Test Name 2",
-			Description: "Test Description 2",
-			Created:     time.Date(2019, 2, 2, 12, 22, 0, 0, time.UTC),
-		},
-	}
 	decks, err := model.GetAll()
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
-	for idx, deck := range expectedDecks {
+	for idx, deck := range testDecks {
 		if !reflect.DeepEqual(deck, decks[idx]) {
 			t.Errorf("want %v; got %v", deck, decks[idx])
 		}
@@ -125,12 +116,9 @@ func TestDeckModel_Update_Positive(t *testing.T) {
 	db, teardown := newTestDB(t)
 	defer teardown()
 	model := DeckModel{db}
-	deck := &models.Deck{
-		ID:          "test_deck_id_1",
-		Name:        "Updated 1",
-		Description: "Updated Description 1",
-		Created:     time.Date(2019, 1, 1, 10, 0, 0, 0, time.UTC),
-	}
+	deck := testDecks[0]
+	deck.Name = "Updated name"
+	deck.Description = "Updated description"
 	err := model.Update(deck)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
