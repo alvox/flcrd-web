@@ -1,0 +1,31 @@
+version: "3.1"
+
+networks:
+  flcrd.nw:
+
+services:
+  flcrd-test-db:
+    container_name: flcrd-test-db
+    image: flcrd-test-db:latest
+    environment:
+      POSTGRES_DB: flcrd
+      POSTGRES_USER: flcrd
+      POSTGRES_PASSWORD: flcrd
+    volumes:
+      - /tmp/flcrd-db:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    networks:
+      flcrd.nw:
+        aliases:
+          - flcrd-test-db
+
+  flcrd-api:
+    container_name: flcrd-api
+    image: flcrd-api:latest
+    ports:
+      - 5000:5000
+    networks:
+      flcrd.nw:
+        aliases:
+          - flcrd-api

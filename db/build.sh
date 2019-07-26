@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t flcrd-db .
+docker build -t flcrd-test-db .
