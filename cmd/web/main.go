@@ -4,6 +4,7 @@ import (
 	"alexanderpopov.me/flcrd/pkg/models"
 	"alexanderpopov.me/flcrd/pkg/models/pg"
 	"database/sql"
+	"flag"
 	_ "github.com/lib/pq"
 	"log"
 	"net/http"
@@ -31,10 +32,14 @@ type application struct {
 }
 
 func main() {
+	port := flag.String("port", ":5000", "Application port")
+	dsn := flag.String("dsn", "postgres://flcrd:flcrd@flcrd-test-db/flcrd?sslmode=disable", "Postgres data source")
+	flag.Parse()
+
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-	db, err := connectDB("postgres://flcrd:flcrd@flcrd-test-db/flcrd?sslmode=disable")
+	db, err := connectDB(*dsn)
 	if err != nil {
 		errorLog.Fatal(err)
 	}
@@ -46,14 +51,15 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Addr:         ":5000",
+		Addr:         *port,
+		ErrorLog:     errorLog,
 		Handler:      app.routes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
 
-	infoLog.Printf("Starting server on %s port", ":5000")
+	infoLog.Printf("Starting server on %s port", *port)
 	err = srv.ListenAndServe()
 	errorLog.Fatal(err)
 }
