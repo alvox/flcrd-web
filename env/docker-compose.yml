@@ -4,6 +4,7 @@ networks:
   flcrd.nw:
 
 services:
+
   flcrd-test-db:
     container_name: flcrd-test-db
     image: flcrd-test-db:latest
@@ -23,9 +24,23 @@ services:
   flcrd-api:
     container_name: flcrd-api
     image: flcrd-api:latest
-    ports:
-      - 5000:5000
+#    ports:
+#      - 5000:5000
     networks:
       flcrd.nw:
         aliases:
           - flcrd-api
+
+  flcrd-nginx:
+    container_name: flcrd-nginx
+    image: nginx:1.17-alpine
+    volumes:
+      - /Users/al/wks/flcrd-api/env/nginx.conf:/etc/nginx/nginx.conf
+      - /tmp/flcrd-proxy/nginx-cache:/var/cache/nginx
+      - /tmp/flcrd-proxy/nginx-pid:/var/run
+    ports:
+      - 80:80
+    networks:
+      flcrd.nw:
+        aliases:
+          - flcrd-nginx
