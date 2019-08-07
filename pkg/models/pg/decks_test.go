@@ -14,11 +14,13 @@ var testDecks = [2]*models.Deck{
 		Name:        "Test Name 1",
 		Description: "Test Description 1",
 		Created:     time.Date(2019, 1, 1, 10, 0, 0, 0, time.UTC),
+		CardsCount:  3,
 	}, {
 		ID:          "test_deck_id_2",
 		Name:        "Test Name 2",
 		Description: "Test Description 2",
 		Created:     time.Date(2019, 2, 2, 12, 22, 0, 0, time.UTC),
+		CardsCount:  2,
 	},
 }
 

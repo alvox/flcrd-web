@@ -20,6 +20,7 @@ type Deck struct {
 	ID          string      `json:"id"`
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
+	CardsCount  int         `json:"cards_count"`
 	Cards       []Flashcard `json:"cards"`
 	Created     time.Time   `json:"created"`
 }

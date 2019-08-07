@@ -30,9 +30,11 @@ func (m *DeckModel) Update(deck *models.Deck) error {
 }
 
 func (m *DeckModel) Get(id string) (*models.Deck, error) {
-	stmt := `select id, name, description, created from flcrd.deck where id = $1;`
+	stmt := `select id, name, description, created,
+        (select count(*) from flcrd.flashcard where deck_id = deck.id) as cards_count
+         from flcrd.deck where id = $1;`
 	d := &models.Deck{}
-	err := m.DB.QueryRow(stmt, id).Scan(&d.ID, &d.Name, &d.Description, &d.Created)
+	err := m.DB.QueryRow(stmt, id).Scan(&d.ID, &d.Name, &d.Description, &d.Created, &d.CardsCount)
 	if err == sql.ErrNoRows {
 		return nil, models.ErrNoRecord
 	}
@@ -44,7 +46,9 @@ func (m *DeckModel) Get(id string) (*models.Deck, error) {
 }
 
 func (m *DeckModel) GetAll() ([]*models.Deck, error) {
-	stmt := `select id, name, description, created from flcrd.deck;`
+	stmt := `select id, name, description, created, 
+       (select count(*) from flcrd.flashcard where deck_id = deck.id) as cards_count 
+       from flcrd.deck;`
 	rows, err := m.DB.Query(stmt)
 	if err != nil {
 		return nil, err
@@ -53,7 +57,7 @@ func (m *DeckModel) GetAll() ([]*models.Deck, error) {
 	decks := []*models.Deck{}
 	for rows.Next() {
 		d := &models.Deck{}
-		err = rows.Scan(&d.ID, &d.Name, &d.Description, &d.Created)
+		err = rows.Scan(&d.ID, &d.Name, &d.Description, &d.Created, &d.CardsCount)
 		if err != nil {
 			return nil, err
 		}
