@@ -19,3 +19,9 @@ create table flcrd.flashcard (
     rear varchar(255) not null,
     created timestamp not null default now()
 );
+
+--- TEST DB ---
+create user test with password 'pass';
+create database test_flcrd owner test;
+grant flcrd to test;
+alter user test with superuser;
