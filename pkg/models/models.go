@@ -23,4 +23,12 @@ type Deck struct {
 	CardsCount  int         `json:"cards_count"`
 	Cards       []Flashcard `json:"cards"`
 	Created     time.Time   `json:"created"`
+	CreatedBy   string      `json:"created_by"`
+}
+
+type User struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
