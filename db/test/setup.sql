@@ -7,6 +7,7 @@ create table flcrd.deck (
     name varchar(255) not null,
     description varchar(255) not null default '',
     created timestamp not null default now(),
+    created_by varchar(40) not null default 'anonymous',
 
     primary key (id)
 );
@@ -17,7 +18,19 @@ create table flcrd.flashcard (
     deck_id varchar(40) not null references flcrd.deck on delete cascade,
     front varchar(255) not null,
     rear varchar(255) not null,
-    created timestamp not null default now()
+    created timestamp not null default now(),
+
+    primary key (id)
+);
+
+create table flcrd.user (
+    id varchar(40) not null default uuid_generate_v4(),
+    name varchar(128) not null,
+    email varchar(128) not null,
+    password varchar(255) not null,
+    created timestamp not null default now(),
+
+    primary key (id)
 );
 
 -- DATA --
