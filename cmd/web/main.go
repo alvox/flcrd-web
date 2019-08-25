@@ -27,6 +27,10 @@ type application struct {
 		Update(*models.Flashcard) error
 		Delete(string, string) error
 	}
+	users interface {
+		Create(string, string, string) (*string, error)
+		GetByEmail(string) (*models.User, error)
+	}
 	infoLog  *log.Logger
 	errorLog *log.Logger
 }
@@ -46,6 +50,7 @@ func main() {
 	app := &application{
 		decks:      &pg.DeckModel{DB: db},
 		flashcards: &pg.FlashcardModel{DB: db},
+		users:      &pg.UserModel{DB: db},
 		infoLog:    infoLog,
 		errorLog:   errorLog,
 	}

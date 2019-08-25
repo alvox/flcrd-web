@@ -1,10 +1,14 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"runtime/debug"
 )
+
+var ErrEmailFormatInvalid = errors.New("invalid email format")
+var ErrUserAlreadyExists = errors.New("user with this email already exists")
 
 func (app *application) serverError(w http.ResponseWriter, err error) {
 	trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())

@@ -19,10 +19,10 @@ func (m *UserModel) Create(name, email, passwordHash string) (*string, error) {
 	return &id, nil
 }
 
-func (m *UserModel) Get(id string) (*models.User, error) {
-	stmt := `select id, name, email, password, created from flcrd.user where id = $1;`
+func (m *UserModel) GetByEmail(email string) (*models.User, error) {
+	stmt := `select id, name, email, password, created from flcrd.user where email = $1;`
 	d := &models.User{}
-	err := m.DB.QueryRow(stmt, id).Scan(&d.ID, &d.Name, &d.Email, &d.Password, &d.Created)
+	err := m.DB.QueryRow(stmt, email).Scan(&d.ID, &d.Name, &d.Email, &d.Password, &d.Created)
 	if err == sql.ErrNoRows {
 		return nil, models.ErrNoRecord
 	}
