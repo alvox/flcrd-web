@@ -3,9 +3,12 @@ package main
 import (
 	"alexanderpopov.me/flcrd/pkg/models"
 	"encoding/json"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
+
+type AuthResponse struct {
+	Token string `json:"token"`
+}
 
 func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 	user := readUser(w, r)
@@ -36,9 +39,12 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.serverError(w, err)
 	}
-	//todo: create token
+	token, err := generateToken(*userId)
+	if err != nil {
+		app.serverError(w, err)
+	}
 	w.WriteHeader(http.StatusCreated)
-	writeJsonResponse(w, userId)
+	writeJsonResponse(w, &AuthResponse{Token: *token})
 }
 
 func readUser(w http.ResponseWriter, r *http.Request) *models.User {
@@ -73,13 +79,4 @@ func validateNotEmpty(user *models.User) error {
 
 func validateEmailFormat(email string) error {
 	return nil // todo: implement
-}
-
-func hashAndSalt(pwd string) (string, error) {
-	bytePwd := []byte(pwd)
-	hash, err := bcrypt.GenerateFromPassword(bytePwd, bcrypt.MinCost)
-	if err != nil {
-		return "", err
-	}
-	return string(hash), nil
 }

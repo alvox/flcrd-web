@@ -38,6 +38,7 @@ type application struct {
 func main() {
 	port := flag.String("port", ":5000", "Application port")
 	dsn := flag.String("dsn", "postgres://flcrd:flcrd@flcrd-test-db/flcrd?sslmode=disable", "Postgres data source")
+	key := flag.String("appkey", "test-key", "Application key")
 	flag.Parse()
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
@@ -63,7 +64,7 @@ func main() {
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-
+	initJwt(*key)
 	infoLog.Printf("Starting server on %s port", *port)
 	err = srv.ListenAndServe()
 	errorLog.Fatal(err)
