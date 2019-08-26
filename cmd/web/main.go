@@ -14,7 +14,7 @@ import (
 
 type application struct {
 	decks interface {
-		Create(string, string) (*string, error)
+		Create(string, string, bool) (*string, error)
 		Get(string) (*models.Deck, error)
 		GetAll() ([]*models.Deck, error)
 		Update(*models.Deck) error

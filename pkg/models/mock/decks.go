@@ -9,6 +9,7 @@ var mockDeck = &models.Deck{
 	ID:          "mock_deck_id_1",
 	Name:        "Mock Deck",
 	Description: "This is a mock deck",
+	Private:     true,
 	Created:     time.Now(),
 }
 

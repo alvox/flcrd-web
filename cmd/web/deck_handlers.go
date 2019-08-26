@@ -12,7 +12,7 @@ func (app *application) createDeck(w http.ResponseWriter, r *http.Request) {
 	if deck == nil {
 		return
 	}
-	id, err := app.decks.Create(deck.Name, deck.Description)
+	id, err := app.decks.Create(deck.Name, deck.Description, deck.Private)
 	if err != nil {
 		app.serverError(w, err)
 		return

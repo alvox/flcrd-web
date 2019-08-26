@@ -14,12 +14,14 @@ var testDecks = [2]*models.Deck{
 		Name:        "Test Name 1",
 		Description: "Test Description 1",
 		Created:     time.Date(2019, 1, 1, 10, 0, 0, 0, time.UTC),
+		Private:     true,
 		CardsCount:  3,
 	}, {
 		ID:          "test_deck_id_2",
 		Name:        "Test Name 2",
 		Description: "Test Description 2",
 		Created:     time.Date(2019, 2, 2, 12, 22, 0, 0, time.UTC),
+		Private:     false,
 		CardsCount:  2,
 	},
 }
@@ -32,13 +34,13 @@ func TestDeckModel_Create_Positive(t *testing.T) {
 	defer teardown()
 	model := DeckModel{db}
 
-	id, err := model.Create("Test Deck", "Deck, created from test")
+	id, err := model.Create("Test Deck", "Deck, created from test", true)
 	if err != nil {
-		t.Error("Failed to create new deck")
+		t.Errorf("failed to create new deck: %s", err.Error())
 	}
 	deck, err := model.Get(*id)
 	if err != nil {
-		t.Error("failed to read created test deck")
+		t.Errorf("failed to read created test deck: %s", err.Error())
 	}
 	if deck.Name != "Test Deck" {
 		t.Errorf("invalid deck name: %s", deck.Name)

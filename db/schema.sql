@@ -8,10 +8,11 @@ create table flcrd.deck (
     description varchar(255) not null default '',
     created timestamp not null default now(),
     created_by varchar(40) not null default 'anonymous',
+    private boolean not null default true,
 
     primary key (id)
 );
-create unique index deck_name_idx on flcrd.deck (name);
+create unique index deck_name_user_idx on flcrd.deck (name, created_by);
 
 create table flcrd.flashcard (
     id varchar(40) not null default uuid_generate_v4(),
@@ -32,6 +33,7 @@ create table flcrd.user (
 
     primary key (id)
 );
+create unique index user_email_idx on flcrd.user (email);
 
 --- TEST DB ---
 create user test with password 'pass';

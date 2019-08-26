@@ -3,6 +3,7 @@ package pg
 import (
 	"alexanderpopov.me/flcrd/pkg/models"
 	"database/sql"
+	"github.com/lib/pq"
 )
 
 type UserModel struct {
@@ -14,6 +15,11 @@ func (m *UserModel) Create(name, email, passwordHash string) (*string, error) {
 	var id string
 	err := m.DB.QueryRow(stmt, name, email, passwordHash).Scan(&id)
 	if err != nil {
+		if err, ok := err.(*pq.Error); ok {
+			if "unique_violation" == err.Code.Name() {
+				return nil, models.ErrNonUniqueEmail
+			}
+		}
 		return nil, err
 	}
 	return &id, nil
