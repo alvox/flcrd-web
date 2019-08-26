@@ -30,6 +30,12 @@ type User struct {
 	ID       string    `json:"id"`
 	Name     string    `json:"name"`
 	Email    string    `json:"email"`
-	Password string    `json:"password"`
+	Password string    `json:"password,omitempty"`
 	Created  time.Time `json:"created"`
+	Token    Token     `json:"token,omitempty"`
+}
+
+type Token struct {
+	AuthToken    string `json:"auth_token,omitempty"`
+	RefreshToken string `json:"refresh_token,omitempty"`
 }

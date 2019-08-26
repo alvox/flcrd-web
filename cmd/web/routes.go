@@ -25,5 +25,6 @@ func (app *application) routes() http.Handler {
 	router.HandleFunc("/v0/decks/{deckID}/flashcards/{flashcardID}", app.deleteFlashcard).Methods("DELETE")
 	// Users
 	router.HandleFunc("/v0/users/register", app.registerUser).Methods("POST")
+	router.HandleFunc("/v0/users/login", app.login).Methods("POST")
 	return router
 }
