@@ -39,8 +39,32 @@ func (m *FlashcardModel) Get(deckID, flashcardID string) (*models.Flashcard, err
 	return c, nil
 }
 
-func (m *FlashcardModel) GetAll(deckID string) ([]*models.Flashcard, error) {
-	stmt := `select id, deck_id, front, rear, created from flcrd.flashcard where deck_id = $1;`
+func (m *FlashcardModel) GetForUser(deckID, userID string) ([]*models.Flashcard, error) {
+	stmt := `select id, deck_id, front, rear, created from flcrd.flashcard where deck_id = $1 and created_by = $2;`
+	rows, err := m.DB.Query(stmt, deckID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	flashcards := []*models.Flashcard{}
+	for rows.Next() {
+		c := &models.Flashcard{}
+		err = rows.Scan(&c.ID, &c.DeckID, &c.Front, &c.Rear, &c.Created)
+		if err != nil {
+			return nil, err
+		}
+		c.Created = c.Created.UTC()
+		flashcards = append(flashcards, c)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return flashcards, nil
+}
+
+func (m *FlashcardModel) GetPublic(deckID string) ([]*models.Flashcard, error) {
+	stmt := `select f.id, f.deck_id, f.front, f.rear, f.created from flcrd.flashcard f 
+        join flcrd.deck d on d.id = f.deck_id where d.id = $1 and d.private = false;`
 	rows, err := m.DB.Query(stmt, deckID)
 	if err != nil {
 		return nil, err

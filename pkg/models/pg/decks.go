@@ -9,10 +9,10 @@ type DeckModel struct {
 	DB *sql.DB
 }
 
-func (m *DeckModel) Create(name, description string, private bool) (*string, error) {
-	stmt := `insert into flcrd.deck (name, description, private) values ($1, $2, $3) returning id;`
+func (m *DeckModel) Create(name, description, createdBy string, private bool) (*string, error) {
+	stmt := `insert into flcrd.deck (name, description, created_by, private) values ($1, $2, $3, $4) returning id;`
 	var id string
-	err := m.DB.QueryRow(stmt, name, description, private).Scan(&id)
+	err := m.DB.QueryRow(stmt, name, description, createdBy, private).Scan(&id)
 	if err != nil {
 		return nil, err
 	}
@@ -45,11 +45,36 @@ func (m *DeckModel) Get(id string) (*models.Deck, error) {
 	return d, nil
 }
 
-func (m *DeckModel) GetAll() ([]*models.Deck, error) {
+func (m *DeckModel) GetPublic() ([]*models.Deck, error) {
 	stmt := `select id, name, description, created, private,
        (select count(*) from flcrd.flashcard where deck_id = deck.id) as cards_count 
-       from flcrd.deck;`
+       from flcrd.deck where private = false;`
 	rows, err := m.DB.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	decks := []*models.Deck{}
+	for rows.Next() {
+		d := &models.Deck{}
+		err = rows.Scan(&d.ID, &d.Name, &d.Description, &d.Created, &d.Private, &d.CardsCount)
+		if err != nil {
+			return nil, err
+		}
+		d.Created = d.Created.UTC()
+		decks = append(decks, d)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return decks, nil
+}
+
+func (m *DeckModel) GetForUser(userID string) ([]*models.Deck, error) {
+	stmt := `select id, name, description, created, private,
+       (select count(*) from flcrd.flashcard where deck_id = deck.id) as cards_count 
+       from flcrd.deck where created_by = $1;`
+	rows, err := m.DB.Query(stmt, userID)
 	if err != nil {
 		return nil, err
 	}

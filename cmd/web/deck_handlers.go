@@ -12,7 +12,7 @@ func (app *application) createDeck(w http.ResponseWriter, r *http.Request) {
 	if deck == nil {
 		return
 	}
-	id, err := app.decks.Create(deck.Name, deck.Description, deck.Private)
+	id, err := app.decks.Create(deck.Name, deck.Description, r.Header.Get("UserID"), deck.Private)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -26,8 +26,18 @@ func (app *application) createDeck(w http.ResponseWriter, r *http.Request) {
 	writeJsonResponse(w, deck)
 }
 
-func (app *application) getDecks(w http.ResponseWriter, r *http.Request) {
-	decks, err := app.decks.GetAll()
+func (app *application) getPublicDecks(w http.ResponseWriter, r *http.Request) {
+	decks, err := app.decks.GetPublic()
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	writeJsonResponse(w, decks)
+}
+
+func (app *application) getDecksForUser(w http.ResponseWriter, r *http.Request) {
+	decks, err := app.decks.GetForUser(r.Header.Get("UserID"))
 	if err != nil {
 		app.serverError(w, err)
 		return

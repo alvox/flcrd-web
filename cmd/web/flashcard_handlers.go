@@ -53,7 +53,7 @@ func (app *application) getFlashcard(w http.ResponseWriter, r *http.Request) {
 	writeJsonResponse(w, flashcard)
 }
 
-func (app *application) getFlashcards(w http.ResponseWriter, r *http.Request) {
+func (app *application) getPublicFlashcards(w http.ResponseWriter, r *http.Request) {
 	deckID := mux.Vars(r)["deckID"]
 	_, err := app.decks.Get(deckID)
 	if err == models.ErrNoRecord {
@@ -64,7 +64,26 @@ func (app *application) getFlashcards(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
-	flashcards, err := app.flashcards.GetAll(deckID)
+	flashcards, err := app.flashcards.GetPublic(deckID)
+	if err != nil {
+		app.serverError(w, err)
+	}
+	w.WriteHeader(http.StatusOK)
+	writeJsonResponse(w, flashcards)
+}
+
+func (app *application) getFlashcardsForUser(w http.ResponseWriter, r *http.Request) {
+	deckID := mux.Vars(r)["deckID"]
+	_, err := app.decks.Get(deckID)
+	if err == models.ErrNoRecord {
+		app.notFound(w)
+		return
+	}
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	flashcards, err := app.flashcards.GetForUser(deckID, r.Header.Get("UserID"))
 	if err != nil {
 		app.serverError(w, err)
 	}

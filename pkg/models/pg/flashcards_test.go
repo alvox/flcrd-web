@@ -124,7 +124,7 @@ func TestFlashcardModel_Get(t *testing.T) {
 	}
 }
 
-func TestFlashcardModel_GetAll_Positive(t *testing.T) {
+func TestFlashcardModel_GetPublic_Positive(t *testing.T) {
 	if testing.Short() {
 		t.Skip("pg: skipping database test")
 	}
@@ -136,7 +136,7 @@ func TestFlashcardModel_GetAll_Positive(t *testing.T) {
 		{
 			name:      "Deck 1",
 			deckId:    "test_deck_id_1",
-			wantCount: 3,
+			wantCount: 0,
 		},
 		{
 			name:      "Deck 2",
@@ -154,7 +154,7 @@ func TestFlashcardModel_GetAll_Positive(t *testing.T) {
 			db, teardown := newTestDB(t)
 			defer teardown()
 			model := FlashcardModel{db}
-			flashcards, err := model.GetAll(tt.deckId)
+			flashcards, err := model.GetPublic(tt.deckId)
 			if err != nil {
 				t.Errorf("unexpected error while reading flashcards: %s", err)
 			}

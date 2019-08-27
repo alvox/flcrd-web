@@ -53,7 +53,7 @@ func generateToken(userID string) (*string, error) {
 	return &tokenString, nil
 }
 
-func validateToken(token string) error {
+func validateToken(token string) (string, error) {
 	claims := &Claims{}
 	t, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -64,15 +64,12 @@ func validateToken(token string) error {
 	if err != nil {
 		fmt.Println(err)
 		if err == jwt.ErrSignatureInvalid {
-			return ErrNotAuthorized
+			return "", ErrNotAuthorized
 		}
-		return err
+		return "", err
 	}
 	if !t.Valid {
-		return ErrNotAuthorized
+		return "", ErrNotAuthorized
 	}
-	//if claims.UserID != userID {
-	//	return ErrBadRequest
-	//}
-	return nil
+	return claims.UserID, nil
 }

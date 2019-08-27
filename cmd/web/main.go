@@ -14,16 +14,18 @@ import (
 
 type application struct {
 	decks interface {
-		Create(string, string, bool) (*string, error)
+		Create(string, string, string, bool) (*string, error)
 		Get(string) (*models.Deck, error)
-		GetAll() ([]*models.Deck, error)
+		GetForUser(string) ([]*models.Deck, error)
+		GetPublic() ([]*models.Deck, error)
 		Update(*models.Deck) error
 		Delete(string) error
 	}
 	flashcards interface {
 		Create(*models.Flashcard) (*string, error)
 		Get(string, string) (*models.Flashcard, error)
-		GetAll(string) ([]*models.Flashcard, error)
+		GetForUser(string, string) ([]*models.Flashcard, error)
+		GetPublic(string) ([]*models.Flashcard, error)
 		Update(*models.Flashcard) error
 		Delete(string, string) error
 	}

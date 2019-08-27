@@ -24,10 +24,12 @@ func (app *application) validateToken(next http.Handler) http.Handler {
 			return
 		}
 		token := authHeader[1]
-		if validateToken(token) != nil {
+		userID, err := validateToken(token)
+		if err != nil {
 			app.notAuthorized(w)
 			return
 		}
+		r.Header.Add("UserID", userID)
 		next.ServeHTTP(w, r)
 	})
 }

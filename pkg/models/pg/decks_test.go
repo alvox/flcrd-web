@@ -34,7 +34,7 @@ func TestDeckModel_Create_Positive(t *testing.T) {
 	defer teardown()
 	model := DeckModel{db}
 
-	id, err := model.Create("Test Deck", "Deck, created from test", true)
+	id, err := model.Create("Test Deck", "Deck, created from test", "test_user_1", true)
 	if err != nil {
 		t.Errorf("failed to create new deck: %s", err.Error())
 	}
@@ -95,21 +95,22 @@ func TestDeckModel_Get(t *testing.T) {
 	}
 }
 
-func TestDeckModel_GetAll_Positive(t *testing.T) {
+func TestDeckModel_GetPublic_Positive(t *testing.T) {
 	if testing.Short() {
 		t.Skip("pg: skipping database test")
 	}
 	db, teardown := newTestDB(t)
 	defer teardown()
 	model := DeckModel{db}
-	decks, err := model.GetAll()
+	decks, err := model.GetPublic()
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
-	for idx, deck := range testDecks {
-		if !reflect.DeepEqual(deck, decks[idx]) {
-			t.Errorf("want %v; got %v", deck, decks[idx])
-		}
+	if len(decks) != 1 {
+		t.Errorf("unexpected collection size: want %d, got %d", 1, len(decks))
+	}
+	if !reflect.DeepEqual(testDecks[1], decks[0]) {
+		t.Errorf("want %v; got %v", testDecks[1], decks[0])
 	}
 }
 
