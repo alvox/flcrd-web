@@ -40,7 +40,9 @@ func (m *FlashcardModel) Get(deckID, flashcardID string) (*models.Flashcard, err
 }
 
 func (m *FlashcardModel) GetForUser(deckID, userID string) ([]*models.Flashcard, error) {
-	stmt := `select id, deck_id, front, rear, created from flcrd.flashcard where deck_id = $1 and created_by = $2;`
+	stmt := `select f.id, f.deck_id, f.front, f.rear, f.created from flcrd.flashcard f
+			join flcrd.deck d on d.id = f.deck_id
+			where f.deck_id = $1 and d.created_by = $2;`
 	rows, err := m.DB.Query(stmt, deckID, userID)
 	if err != nil {
 		return nil, err

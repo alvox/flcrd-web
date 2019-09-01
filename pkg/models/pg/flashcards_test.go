@@ -165,6 +165,22 @@ func TestFlashcardModel_GetPublic_Positive(t *testing.T) {
 	}
 }
 
+func TestFlashcardModel_GetForUser(t *testing.T) {
+	if testing.Short() {
+		t.Skip("pg: skipping database test")
+	}
+	db, teardown := newTestDB(t)
+	defer teardown()
+	model := FlashcardModel{db}
+	flashcards, err := model.GetForUser("test_deck_id_1", "testuser_id_1")
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+	if len(flashcards) != 3 {
+		t.Errorf("expected %d cards; got %d", 3, len(flashcards))
+	}
+}
+
 func TestFlashcardModel_Update_Positive(t *testing.T) {
 	if testing.Short() {
 		t.Skip("pg: skipping database test")
