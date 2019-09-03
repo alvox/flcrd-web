@@ -12,6 +12,13 @@ func (app *application) createDeck(w http.ResponseWriter, r *http.Request) {
 	if deck == nil {
 		return
 	}
+	//todo: extract all validations to the separate func
+	if errs := deck.Validate(); len(errs) > 0 {
+		err := map[string]interface{}{"validationError": errs}
+		w.WriteHeader(http.StatusBadRequest)
+		writeJsonResponse(w, err)
+		return
+	}
 	id, err := app.decks.Create(deck.Name, deck.Description, r.Header.Get("UserID"), deck.Private)
 	if err != nil {
 		app.serverError(w, err)
@@ -66,6 +73,12 @@ func (app *application) updateDeck(w http.ResponseWriter, r *http.Request) {
 	if deck == nil {
 		return
 	}
+	if errs := deck.Validate(); len(errs) > 0 {
+		err := map[string]interface{}{"validationError": errs}
+		w.WriteHeader(http.StatusBadRequest)
+		writeJsonResponse(w, err)
+		return
+	}
 	deckID := mux.Vars(r)["deckID"]
 	_, err := app.decks.Get(deckID)
 	if err == models.ErrNoRecord {
@@ -101,6 +114,7 @@ func (app *application) deleteDeck(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// todo: refactor this func out ot this file
 func writeJsonResponse(w http.ResponseWriter, obj interface{}) {
 	out, err := json.Marshal(obj)
 	if err != nil {

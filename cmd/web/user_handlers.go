@@ -11,9 +11,10 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 	if user == nil {
 		return
 	}
-	err := validate(user)
-	if err != nil {
-		app.clientError(w, http.StatusBadRequest)
+	if errs := user.Validate(true); len(errs) > 0 {
+		err := map[string]interface{}{"validationError": errs}
+		w.WriteHeader(http.StatusBadRequest)
+		writeJsonResponse(w, err)
 		return
 	}
 	existingUser, err := app.users.GetByEmail(user.Email)
@@ -57,9 +58,10 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 	if user == nil {
 		return
 	}
-	err := validate(user)
-	if err != nil {
-		app.clientError(w, http.StatusBadRequest)
+	if errs := user.Validate(false); len(errs) > 0 {
+		err := map[string]interface{}{"validationError": errs}
+		w.WriteHeader(http.StatusBadRequest)
+		writeJsonResponse(w, err)
 		return
 	}
 	existingUser, err := app.users.GetByEmail(user.Email)
@@ -100,24 +102,4 @@ func readUser(w http.ResponseWriter, r *http.Request) *models.User {
 		return nil
 	}
 	return &user
-}
-
-func validate(user *models.User) error {
-	err := validateEmailFormat(user.Email)
-	if err != nil {
-		return err
-	}
-	err = validateNotEmpty(user)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func validateNotEmpty(user *models.User) error {
-	return nil // todo: implement
-}
-
-func validateEmailFormat(email string) error {
-	return nil // todo: implement
 }

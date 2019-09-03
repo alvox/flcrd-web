@@ -12,6 +12,12 @@ func (app *application) createFlashcard(w http.ResponseWriter, r *http.Request) 
 	if flashcard == nil {
 		return
 	}
+	if errs := flashcard.Validate(); len(errs) > 0 {
+		err := map[string]interface{}{"validationError": errs}
+		w.WriteHeader(http.StatusBadRequest)
+		writeJsonResponse(w, err)
+		return
+	}
 	deckID := mux.Vars(r)["deckID"]
 	_, err := app.decks.Get(deckID)
 	if err == models.ErrNoRecord {
@@ -94,6 +100,12 @@ func (app *application) getFlashcardsForUser(w http.ResponseWriter, r *http.Requ
 func (app *application) updateFlashcard(w http.ResponseWriter, r *http.Request) {
 	flashcard := readFlashcard(w, r)
 	if flashcard == nil {
+		return
+	}
+	if errs := flashcard.Validate(); len(errs) > 0 {
+		err := map[string]interface{}{"validationError": errs}
+		w.WriteHeader(http.StatusBadRequest)
+		writeJsonResponse(w, err)
 		return
 	}
 	deckID := mux.Vars(r)["deckID"]
