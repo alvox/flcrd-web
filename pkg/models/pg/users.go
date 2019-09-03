@@ -27,6 +27,22 @@ func (m *UserModel) Create(user *models.User) (*string, error) {
 	return &id, nil
 }
 
+func (m *UserModel) Get(userID string) (*models.User, error) {
+	stmt := `select id, name, email, password, created, refresh_token, refresh_token_exp 
+             from flcrd.user where id = $1;`
+	d := &models.User{}
+	err := m.DB.QueryRow(stmt, userID).Scan(&d.ID, &d.Name, &d.Email, &d.Password, &d.Created,
+		&d.Token.RefreshToken, &d.Token.RefreshTokenExp)
+	if err == sql.ErrNoRows {
+		return nil, models.ErrNoRecord
+	}
+	if err != nil {
+		return nil, err
+	}
+	d.Created = d.Created.UTC()
+	return d, nil
+}
+
 func (m *UserModel) GetByEmail(email string) (*models.User, error) {
 	stmt := `select id, name, email, password, created, refresh_token, refresh_token_exp 
              from flcrd.user where email = $1;`

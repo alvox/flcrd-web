@@ -31,7 +31,9 @@ type application struct {
 	}
 	users interface {
 		Create(user *models.User) (*string, error)
+		Get(string) (*models.User, error)
 		GetByEmail(string) (*models.User, error)
+		UpdateRefreshToken(user *models.User) error
 	}
 	infoLog  *log.Logger
 	errorLog *log.Logger

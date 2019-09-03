@@ -1,6 +1,7 @@
 package main
 
 import (
+	"alexanderpopov.me/flcrd/pkg/models"
 	"fmt"
 	"github.com/dchest/uniuri"
 	"github.com/dgrijalva/jwt-go"
@@ -38,8 +39,8 @@ func checkPassword(hash string, pwd string) bool {
 	return true
 }
 
-func generateToken(userID string) (*string, error) {
-	expirationTime := time.Now().Add(1 * time.Hour)
+func generateAuthToken(userID string) (*string, error) {
+	expirationTime := time.Now().Add(15 * time.Minute)
 	claims := &Claims{
 		UserID: userID,
 		StandardClaims: jwt.StandardClaims{
@@ -54,7 +55,7 @@ func generateToken(userID string) (*string, error) {
 	return &tokenString, nil
 }
 
-func validateToken(token string) (string, error) {
+func validateAuthToken(token string, couldBeExpired bool) (string, error) {
 	claims := &Claims{}
 	t, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -69,7 +70,7 @@ func validateToken(token string) (string, error) {
 		}
 		return "", err
 	}
-	if !t.Valid {
+	if !couldBeExpired && !t.Valid {
 		return "", ErrNotAuthorized
 	}
 	return claims.UserID, nil
@@ -79,4 +80,14 @@ func generateRefreshToken() (string, time.Time) {
 	t := uniuri.NewLen(40)
 	exp := time.Now().Add(24 * time.Hour * 30)
 	return t, exp
+}
+
+func validateRefreshToken(token string, user *models.User) bool {
+	if token != user.Token.RefreshToken {
+		return false
+	}
+	if time.Now().After(user.Token.RefreshTokenExp) {
+		return false
+	}
+	return true
 }

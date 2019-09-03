@@ -72,3 +72,15 @@ func (f Flashcard) Validate() url.Values {
 	}
 	return errs
 }
+
+func (t Token) Validate() url.Values {
+	errs := url.Values{}
+
+	if t.AuthToken == "" {
+		errs.Add("auth_token", "field is required")
+	}
+	if t.RefreshToken == "" {
+		errs.Add("refresh_token", "field is required")
+	}
+	return errs
+}
