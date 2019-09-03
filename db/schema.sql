@@ -29,6 +29,8 @@ create table flcrd.user (
     name varchar(128) not null,
     email varchar(128) not null,
     password varchar(255) not null,
+    refresh_token varchar(40) not null default '',
+    refresh_token_exp timestamp not null default now(),
     created timestamp not null default now(),
 
     primary key (id)

@@ -1,8 +1,10 @@
 package pg
 
 import (
+	"alexanderpopov.me/flcrd/pkg/models"
 	"github.com/lib/pq"
 	"testing"
+	"time"
 )
 
 func TestUserModel_Create_Positive(t *testing.T) {
@@ -12,7 +14,26 @@ func TestUserModel_Create_Positive(t *testing.T) {
 	db, teardown := newTestDB(t)
 	defer teardown()
 	model := UserModel{db}
-	_, err := model.Create("Test", "test_email_1@example.com", "some_password")
+
+	exp, e := time.Parse(
+		time.RFC3339,
+		"2019-12-01T22:08:41+00:00")
+	if e != nil {
+		t.Errorf("unexpected error while preparing test data: %s", e.Error())
+	}
+
+	u := &models.User{
+		Name:     "Test",
+		Email:    "test_email_1@example.com",
+		Password: "some_password",
+		Token: models.Token{
+			AuthToken:       "authtoken",
+			RefreshToken:    "refreshtoken",
+			RefreshTokenExp: exp,
+		},
+	}
+
+	_, err := model.Create(u)
 	if err != nil {
 		t.Error("Failed to create new user")
 	}
@@ -38,7 +59,18 @@ func TestUserModel_Create_Email_Exists(t *testing.T) {
 	db, teardown := newTestDB(t)
 	defer teardown()
 	model := UserModel{db}
-	_, err := model.Create("Test", "testuser@example.com", "some_password")
+
+	u := &models.User{
+		Name:     "Test",
+		Email:    "testuser@example.com",
+		Password: "some_password",
+		Token: models.Token{
+			AuthToken:    "authtoken",
+			RefreshToken: "refreshtoken",
+		},
+	}
+
+	_, err := model.Create(u)
 	if err == nil {
 		t.Error("expect unique constraint violation")
 	}

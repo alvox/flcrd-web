@@ -38,6 +38,7 @@ type User struct {
 }
 
 type Token struct {
-	AuthToken    string `json:"auth_token,omitempty"`
-	RefreshToken string `json:"refresh_token,omitempty"`
+	AuthToken       string    `json:"auth_token,omitempty"`
+	RefreshToken    string    `json:"refresh_token,omitempty"`
+	RefreshTokenExp time.Time `json:"refresh_token_exp"`
 }

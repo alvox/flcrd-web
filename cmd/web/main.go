@@ -30,7 +30,7 @@ type application struct {
 		Delete(string, string) error
 	}
 	users interface {
-		Create(string, string, string) (*string, error)
+		Create(user *models.User) (*string, error)
 		GetByEmail(string) (*models.User, error)
 	}
 	infoLog  *log.Logger

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/dchest/uniuri"
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 	"time"
@@ -72,4 +73,10 @@ func validateToken(token string) (string, error) {
 		return "", ErrNotAuthorized
 	}
 	return claims.UserID, nil
+}
+
+func generateRefreshToken() (string, time.Time) {
+	t := uniuri.NewLen(40)
+	exp := time.Now().Add(24 * time.Hour * 30)
+	return t, exp
 }

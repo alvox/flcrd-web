@@ -32,7 +32,8 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 	}
 	user.Password = pwdHash
-	userId, err := app.users.Create(user.Name, user.Email, user.Password)
+	user.Token.RefreshToken, user.Token.RefreshTokenExp = generateRefreshToken()
+	userId, err := app.users.Create(user)
 	if err != nil {
 		app.serverError(w, err)
 	}
@@ -40,14 +41,11 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.serverError(w, err)
 	}
-	token, err := generateToken(*userId)
+	authToken, err := generateToken(*userId)
 	if err != nil {
 		app.serverError(w, err)
 	}
-	tokens := models.Token{
-		AuthToken: *token,
-	}
-	user.Token = tokens
+	user.Token.AuthToken = *authToken
 	user.Password = ""
 	w.WriteHeader(http.StatusCreated)
 	writeJsonResponse(w, user)

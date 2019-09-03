@@ -29,6 +29,8 @@ create table flcrd.user (
     name varchar(128) not null,
     email varchar(128) not null,
     password varchar(255) not null,
+    refresh_token varchar(40) not null default '',
+    refresh_token_exp timestamp not null default now(),
     created timestamp not null default now(),
 
     primary key (id)
@@ -36,8 +38,8 @@ create table flcrd.user (
 create unique index user_email_idx on flcrd.user (email);
 
 -- DATA --
-insert into flcrd.user (id, name, email, password) values
-('testuser_id_1', 'Testuser', 'testuser@example.com', '12345');
+insert into flcrd.user (id, name, email, password, refresh_token) values
+('testuser_id_1', 'Testuser', 'testuser@example.com', '12345', 'refreshtoken');
 
 insert into flcrd.deck (id, name, description, created, created_by, private) values
 ('test_deck_id_1', 'Test Name 1', 'Test Description 1', '2019-01-01 10:00:00', 'testuser_id_1', true),
