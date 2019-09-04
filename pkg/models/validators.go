@@ -55,9 +55,6 @@ func (d Deck) Validate() url.Values {
 func (f Flashcard) Validate() url.Values {
 	errs := url.Values{}
 
-	if f.DeckID == "" {
-		errs.Add("deck_id", "field is required")
-	}
 	if f.Front == "" {
 		errs.Add("front", "field is required")
 	}
