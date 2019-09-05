@@ -6,6 +6,7 @@ import (
 	"github.com/dchest/uniuri"
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
+	"strings"
 	"time"
 )
 
@@ -64,13 +65,16 @@ func validateAuthToken(token string, couldBeExpired bool) (string, error) {
 		return appKey, nil
 	})
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(err.Error())
 		if err == jwt.ErrSignatureInvalid {
 			return "", ErrNotAuthorized
 		}
+		if couldBeExpired && strings.Contains(err.Error(), "token is expired") {
+			return claims.UserID, nil
+		}
 		return "", err
 	}
-	if !couldBeExpired && !t.Valid {
+	if !t.Valid {
 		return "", ErrNotAuthorized
 	}
 	return claims.UserID, nil

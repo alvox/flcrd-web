@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"runtime/debug"
 )
 
@@ -27,5 +28,9 @@ func (app *application) notFound(w http.ResponseWriter) {
 }
 
 func (app *application) notAuthorized(w http.ResponseWriter) {
-	http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+	errs := url.Values{}
+	errs.Add("user", "access token invalid or expired")
+	err := map[string]interface{}{"validationError": errs}
+	w.WriteHeader(http.StatusUnauthorized)
+	writeJsonResponse(w, err)
 }
