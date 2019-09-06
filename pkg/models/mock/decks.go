@@ -11,6 +11,7 @@ var mockDeck = &models.Deck{
 	Description: "This is a mock deck",
 	Private:     true,
 	Created:     time.Now(),
+	CreatedBy:   "test_user_1",
 }
 
 type DeckModel struct{}
@@ -42,7 +43,10 @@ func (m *DeckModel) GetPublic() ([]*models.Deck, error) {
 }
 
 func (m *DeckModel) GetForUser(userID string) ([]*models.Deck, error) {
-	return []*models.Deck{mockDeck}, nil
+	if userID == "test_user_1" {
+		return []*models.Deck{mockDeck}, nil
+	}
+	return nil, nil
 }
 
 func (m *DeckModel) Delete(id string) error {

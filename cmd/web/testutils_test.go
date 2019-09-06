@@ -4,6 +4,7 @@ import (
 	"alexanderpopov.me/flcrd/pkg/models"
 	"alexanderpopov.me/flcrd/pkg/models/mock"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -31,8 +32,15 @@ func newTestServer(t *testing.T, h http.Handler) *testServer {
 	return &testServer{ts}
 }
 
-func (ts *testServer) get(t *testing.T, urlPath string) (int, http.Header, []byte) {
-	rs, err := ts.Client().Get(ts.URL + urlPath)
+func (ts *testServer) get(t *testing.T, urlPath, token string) (int, http.Header, []byte) {
+	req, err := http.NewRequest("GET", ts.URL+urlPath, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(token) > 0 {
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+	}
+	rs, err := ts.Client().Do(req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,11 +74,11 @@ func parseUser(resp string) (*models.User, bool) {
 	return &user, true
 }
 
-func parseError(resp string) (*ApiError, bool) {
-	var e ApiError
-	err := json.NewDecoder(strings.NewReader(resp)).Decode(&e)
+func parseDecks(resp string) (*[]models.Deck, bool) {
+	var decks []models.Deck
+	err := json.NewDecoder(strings.NewReader(resp)).Decode(&decks)
 	if err != nil {
 		return nil, false
 	}
-	return &e, true
+	return &decks, true
 }
