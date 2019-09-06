@@ -27,7 +27,7 @@ func TestUserModel_Create_Positive(t *testing.T) {
 		Email:    "test_email_1@example.com",
 		Password: "some_password",
 		Token: models.Token{
-			AuthToken:       "authtoken",
+			AccessToken:     "authtoken",
 			RefreshToken:    "refreshtoken",
 			RefreshTokenExp: exp,
 		},
@@ -65,7 +65,7 @@ func TestUserModel_Create_Email_Exists(t *testing.T) {
 		Email:    "testuser@example.com",
 		Password: "some_password",
 		Token: models.Token{
-			AuthToken:    "authtoken",
+			AccessToken:  "authtoken",
 			RefreshToken: "refreshtoken",
 		},
 	}

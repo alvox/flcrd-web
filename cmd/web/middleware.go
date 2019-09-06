@@ -24,7 +24,7 @@ func (app *application) validateToken(next http.Handler) http.Handler {
 			return
 		}
 		token := authHeader[1]
-		userID, err := validateAuthToken(token, false)
+		userID, err := validateAccessToken(token, false)
 		if err != nil {
 			app.accessTokenInvalid(w)
 			return

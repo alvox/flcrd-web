@@ -72,8 +72,8 @@ func (f Flashcard) Validate() *ValidationErrors {
 func (t Token) Validate() *ValidationErrors {
 	errs := NewValidationErrors()
 
-	if t.AuthToken == "" {
-		errs.Add("auth_token", "field is required")
+	if t.AccessToken == "" {
+		errs.Add("access_token", "field is required")
 	}
 	if t.RefreshToken == "" {
 		errs.Add("refresh_token", "field is required")

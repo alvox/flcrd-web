@@ -40,7 +40,7 @@ func checkPassword(hash string, pwd string) bool {
 	return true
 }
 
-func generateAuthToken(userID string) (*string, error) {
+func generateAccessToken(userID string) (*string, error) {
 	expirationTime := time.Now().Add(15 * time.Minute)
 	claims := &Claims{
 		UserID: userID,
@@ -56,7 +56,7 @@ func generateAuthToken(userID string) (*string, error) {
 	return &tokenString, nil
 }
 
-func validateAuthToken(token string, couldBeExpired bool) (string, error) {
+func validateAccessToken(token string, couldBeExpired bool) (string, error) {
 	claims := &Claims{}
 	t, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

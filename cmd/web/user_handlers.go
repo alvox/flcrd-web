@@ -40,11 +40,11 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.serverError(w, err)
 	}
-	authToken, err := generateAuthToken(*userId)
+	accessToken, err := generateAccessToken(*userId)
 	if err != nil {
 		app.serverError(w, err)
 	}
-	user.Token.AuthToken = *authToken
+	user.Token.AccessToken = *accessToken
 	user.Password = ""
 	w.WriteHeader(http.StatusCreated)
 	writeJsonResponse(w, user)
@@ -56,7 +56,7 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 		app.badRequest(w)
 		return
 	}
-	if errs := user.Validate(true); errs.Present() {
+	if errs := user.Validate(false); errs.Present() {
 		app.validationError(w, errs)
 		return
 	}
@@ -79,12 +79,12 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
-	authToken, err := generateAuthToken(existingUser.ID)
+	accessToken, err := generateAccessToken(existingUser.ID)
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
-	existingUser.Token.AuthToken = *authToken
+	existingUser.Token.AccessToken = *accessToken
 	existingUser.Password = ""
 	w.WriteHeader(http.StatusOK)
 	writeJsonResponse(w, existingUser)
@@ -100,7 +100,7 @@ func (app *application) refreshToken(w http.ResponseWriter, r *http.Request) {
 		app.validationError(w, errs)
 		return
 	}
-	userID, err := validateAuthToken(token.AuthToken, true)
+	userID, err := validateAccessToken(token.AccessToken, true)
 	if err != nil {
 		app.accessTokenInvalid(w)
 		return
@@ -118,11 +118,11 @@ func (app *application) refreshToken(w http.ResponseWriter, r *http.Request) {
 		app.refreshTokenInvalid(w)
 		return
 	}
-	authToken, err := generateAuthToken(userID)
+	accessToken, err := generateAccessToken(userID)
 	if err != nil {
 		app.serverError(w, err)
 	}
-	token.AuthToken = *authToken
+	token.AccessToken = *accessToken
 	w.WriteHeader(http.StatusOK)
 	writeJsonResponse(w, token)
 }
