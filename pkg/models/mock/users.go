@@ -2,6 +2,7 @@ package mock
 
 import (
 	"alexanderpopov.me/flcrd/pkg/models"
+	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
@@ -9,7 +10,7 @@ var mockUser = &models.User{
 	ID:       "test_user_id",
 	Name:     "test_user_name",
 	Email:    "test_user_email@example.com",
-	Password: "test_password",
+	Password: hashPassword("test_password"),
 	Created:  time.Now(),
 	Token: models.Token{
 		AccessToken:     "test_access_token",
@@ -49,4 +50,13 @@ func (m *UserModel) UpdateRefreshToken(user *models.User) error {
 	default:
 		return models.ErrNoRecord
 	}
+}
+
+func hashPassword(pwd string) string {
+	bytePwd := []byte(pwd)
+	hash, err := bcrypt.GenerateFromPassword(bytePwd, bcrypt.MinCost)
+	if err != nil {
+		return ""
+	}
+	return string(hash)
 }

@@ -6,23 +6,22 @@ import (
 	"testing"
 )
 
-func TestRegister_Positive(t *testing.T) {
+func TestLogin_Positive(t *testing.T) {
 	app := newTestApp(t)
 	ts := newTestServer(t, app.routes())
 	defer ts.Close()
 
 	req := `{
-            "name": "test", 
-            "email": "test@test.com", 
-            "password": "123456"
+            "email": "test_user_email@example.com", 
+            "password": "test_password"
             }`
-	status, _, resp := ts.post(t, "/v0/users/register", req)
+	status, _, resp := ts.post(t, "/v0/users/login", req)
 	u, valid := parseUser(string(resp))
 	if !valid {
 		t.Error()
 	}
-	if status != http.StatusCreated {
-		t.Errorf("status: want 201; got %d", status)
+	if status != http.StatusOK {
+		t.Errorf("status: want 200; got %d", status)
 	}
 	if u.Email != "test_user_email@example.com" {
 		t.Errorf("email: want test_user_email@example.com; got %s", u.Email)
@@ -41,12 +40,12 @@ func TestRegister_Positive(t *testing.T) {
 	}
 }
 
-func TestRegister_EmptyRequest(t *testing.T) {
+func TestLogin_EmptyRequest(t *testing.T) {
 	app := newTestApp(t)
 	ts := newTestServer(t, app.routes())
 	defer ts.Close()
 
-	status, _, resp := ts.post(t, "/v0/users/register", "")
+	status, _, resp := ts.post(t, "/v0/users/login", "")
 
 	if status != http.StatusBadRequest {
 		t.Errorf("status: want 400; got %d", status)
@@ -57,22 +56,41 @@ func TestRegister_EmptyRequest(t *testing.T) {
 	}
 }
 
-func TestRegister_DuplicateEmail(t *testing.T) {
+func TestLogin_UserNotFound(t *testing.T) {
 	app := newTestApp(t)
 	ts := newTestServer(t, app.routes())
 	defer ts.Close()
 
 	req := `{
-            "name": "test", 
+            "email": "non_existing_user@example.com", 
+            "password": "123456"
+            }`
+	status, _, resp := ts.post(t, "/v0/users/login", req)
+
+	if status != http.StatusUnauthorized {
+		t.Errorf("status: want 401; got %d", status)
+	}
+	wr := `{"code":"006","message":"email or password incorrect"}`
+	if !bytes.Contains([]byte(wr), resp) {
+		t.Errorf("response: want %s; got %s", wr, string(resp))
+	}
+}
+
+func TestLogin_InvalidPassword(t *testing.T) {
+	app := newTestApp(t)
+	ts := newTestServer(t, app.routes())
+	defer ts.Close()
+
+	req := `{
             "email": "test_user_email@example.com", 
             "password": "123456"
             }`
-	status, _, resp := ts.post(t, "/v0/users/register", req)
+	status, _, resp := ts.post(t, "/v0/users/login", req)
 
-	if status != http.StatusBadRequest {
-		t.Errorf("status: want 400; got %d", status)
+	if status != http.StatusUnauthorized {
+		t.Errorf("status: want 401; got %d", status)
 	}
-	wr := `{"code":"007","message":"user with this email already registered"}`
+	wr := `{"code":"006","message":"email or password incorrect"}`
 	if !bytes.Contains([]byte(wr), resp) {
 		t.Errorf("response: want %s; got %s", wr, string(resp))
 	}
