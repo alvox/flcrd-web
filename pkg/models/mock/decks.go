@@ -15,7 +15,7 @@ var mockDeck = &models.Deck{
 
 type DeckModel struct{}
 
-func (m *DeckModel) Create(name, description string) (*string, error) {
+func (m *DeckModel) Create(name, description, createdBy string, private bool) (*string, error) {
 	return &mockDeck.ID, nil
 }
 
@@ -37,7 +37,11 @@ func (m *DeckModel) Get(id string) (*models.Deck, error) {
 	}
 }
 
-func (m *DeckModel) GetAll() ([]*models.Deck, error) {
+func (m *DeckModel) GetPublic() ([]*models.Deck, error) {
+	return []*models.Deck{mockDeck}, nil
+}
+
+func (m *DeckModel) GetForUser(userID string) ([]*models.Deck, error) {
 	return []*models.Deck{mockDeck}, nil
 }
 

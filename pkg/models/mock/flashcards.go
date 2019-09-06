@@ -31,7 +31,11 @@ func (m *FlashcardModel) Get(deckID, flashcardID string) (*models.Flashcard, err
 	return mockFlashcards[0], nil
 }
 
-func (m *FlashcardModel) GetAll(deckID string) ([]*models.Flashcard, error) {
+func (m *FlashcardModel) GetForUser(deckID, userID string) ([]*models.Flashcard, error) {
+	return mockFlashcards, nil
+}
+
+func (m *FlashcardModel) GetPublic(deckID string) ([]*models.Flashcard, error) {
 	return mockFlashcards, nil
 }
 

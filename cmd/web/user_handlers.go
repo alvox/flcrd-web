@@ -35,7 +35,7 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.serverError(w, err)
 	}
-	user, err = app.users.GetByEmail(user.Email)
+	user, err = app.users.Get(*userId)
 	if err != nil {
 		app.serverError(w, err)
 	}
