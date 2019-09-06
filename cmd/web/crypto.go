@@ -65,7 +65,6 @@ func validateAccessToken(token string, couldBeExpired bool) (string, error) {
 		return appKey, nil
 	})
 	if err != nil {
-		fmt.Println(err.Error())
 		if err == jwt.ErrSignatureInvalid {
 			return "", ErrNotAuthorized
 		}
