@@ -46,8 +46,7 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 	}
 	user.Token.AccessToken = *accessToken
 	user.Password = ""
-	w.WriteHeader(http.StatusCreated)
-	writeJsonResponse(w, user)
+	reply(w, http.StatusCreated, user)
 }
 
 func (app *application) login(w http.ResponseWriter, r *http.Request) {
@@ -86,8 +85,7 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 	}
 	existingUser.Token.AccessToken = *accessToken
 	existingUser.Password = ""
-	w.WriteHeader(http.StatusOK)
-	writeJsonResponse(w, existingUser)
+	reply(w, http.StatusOK, existingUser)
 }
 
 func (app *application) refreshToken(w http.ResponseWriter, r *http.Request) {
@@ -123,8 +121,7 @@ func (app *application) refreshToken(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 	}
 	token.AccessToken = *accessToken
-	w.WriteHeader(http.StatusOK)
-	writeJsonResponse(w, token)
+	reply(w, http.StatusOK, token)
 }
 
 func readUser(r *http.Request) (*models.User, bool) {

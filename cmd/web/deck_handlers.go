@@ -27,8 +27,7 @@ func (app *application) createDeck(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
-	writeJsonResponse(w, deck)
+	reply(w, http.StatusCreated, deck)
 }
 
 func (app *application) getPublicDecks(w http.ResponseWriter, r *http.Request) {
@@ -37,8 +36,7 @@ func (app *application) getPublicDecks(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	writeJsonResponse(w, decks)
+	reply(w, http.StatusOK, decks)
 }
 
 func (app *application) getDecksForUser(w http.ResponseWriter, r *http.Request) {
@@ -47,8 +45,7 @@ func (app *application) getDecksForUser(w http.ResponseWriter, r *http.Request) 
 		app.serverError(w, err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	writeJsonResponse(w, decks)
+	reply(w, http.StatusOK, decks)
 }
 
 func (app *application) getDeck(w http.ResponseWriter, r *http.Request) {
@@ -62,8 +59,7 @@ func (app *application) getDeck(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	writeJsonResponse(w, deck)
+	reply(w, http.StatusOK, deck)
 }
 
 func (app *application) updateDeck(w http.ResponseWriter, r *http.Request) {
@@ -92,8 +88,7 @@ func (app *application) updateDeck(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	writeJsonResponse(w, deck)
+	reply(w, http.StatusOK, deck)
 }
 
 func (app *application) deleteDeck(w http.ResponseWriter, r *http.Request) {
@@ -108,21 +103,7 @@ func (app *application) deleteDeck(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
-	w.WriteHeader(http.StatusNoContent)
-}
-
-// todo: refactor this func out ot this file
-func writeJsonResponse(w http.ResponseWriter, obj interface{}) {
-	out, err := json.Marshal(obj)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(out)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	reply(w, http.StatusNoContent, nil)
 }
 
 func readDeck(r *http.Request) (*models.Deck, bool) {

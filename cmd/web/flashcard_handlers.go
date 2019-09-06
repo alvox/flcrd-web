@@ -38,8 +38,7 @@ func (app *application) createFlashcard(w http.ResponseWriter, r *http.Request) 
 		app.serverError(w, err)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
-	writeJsonResponse(w, flashcard)
+	reply(w, http.StatusCreated, flashcard)
 }
 
 func (app *application) getFlashcard(w http.ResponseWriter, r *http.Request) {
@@ -54,8 +53,7 @@ func (app *application) getFlashcard(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	writeJsonResponse(w, flashcard)
+	reply(w, http.StatusOK, flashcard)
 }
 
 func (app *application) getPublicFlashcards(w http.ResponseWriter, r *http.Request) {
@@ -73,8 +71,7 @@ func (app *application) getPublicFlashcards(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		app.serverError(w, err)
 	}
-	w.WriteHeader(http.StatusOK)
-	writeJsonResponse(w, flashcards)
+	reply(w, http.StatusOK, flashcards)
 }
 
 func (app *application) getFlashcardsForUser(w http.ResponseWriter, r *http.Request) {
@@ -92,8 +89,7 @@ func (app *application) getFlashcardsForUser(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		app.serverError(w, err)
 	}
-	w.WriteHeader(http.StatusOK)
-	writeJsonResponse(w, flashcards)
+	reply(w, http.StatusOK, flashcards)
 }
 
 func (app *application) updateFlashcard(w http.ResponseWriter, r *http.Request) {
@@ -128,8 +124,7 @@ func (app *application) updateFlashcard(w http.ResponseWriter, r *http.Request) 
 		app.serverError(w, err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	writeJsonResponse(w, flashcard)
+	reply(w, http.StatusOK, flashcard)
 }
 
 func (app *application) deleteFlashcard(w http.ResponseWriter, r *http.Request) {
@@ -149,7 +144,7 @@ func (app *application) deleteFlashcard(w http.ResponseWriter, r *http.Request) 
 		app.serverError(w, err)
 		return
 	}
-	w.WriteHeader(http.StatusNoContent)
+	reply(w, http.StatusNoContent, nil)
 }
 
 func readFlashcard(r *http.Request) (*models.Flashcard, bool) {
