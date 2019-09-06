@@ -2,12 +2,11 @@ package main
 
 import (
 	"alexanderpopov.me/flcrd/pkg/models"
-	"encoding/json"
 	"net/http"
 )
 
 func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
-	user, valid := readUser(r)
+	user, valid := models.ParseUser(r)
 	if !valid {
 		app.badRequest(w)
 		return
@@ -50,7 +49,7 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) login(w http.ResponseWriter, r *http.Request) {
-	user, valid := readUser(r)
+	user, valid := models.ParseUser(r)
 	if !valid {
 		app.badRequest(w)
 		return
@@ -89,7 +88,7 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) refreshToken(w http.ResponseWriter, r *http.Request) {
-	token, valid := readTokens(r)
+	token, valid := models.ParseTokens(r)
 	if !valid {
 		app.badRequest(w)
 		return
@@ -122,28 +121,4 @@ func (app *application) refreshToken(w http.ResponseWriter, r *http.Request) {
 	}
 	token.AccessToken = *accessToken
 	reply(w, http.StatusOK, token)
-}
-
-func readUser(r *http.Request) (*models.User, bool) {
-	if r.Body == nil {
-		return nil, false
-	}
-	var user models.User
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		return nil, false
-	}
-	return &user, true
-}
-
-func readTokens(r *http.Request) (*models.Token, bool) {
-	if r.Body == nil {
-		return nil, false
-	}
-	var token models.Token
-	err := json.NewDecoder(r.Body).Decode(&token)
-	if err != nil {
-		return nil, false
-	}
-	return &token, true
 }

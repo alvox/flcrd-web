@@ -2,13 +2,12 @@ package main
 
 import (
 	"alexanderpopov.me/flcrd/pkg/models"
-	"encoding/json"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
 func (app *application) createFlashcard(w http.ResponseWriter, r *http.Request) {
-	flashcard, valid := readFlashcard(r)
+	flashcard, valid := models.ParseFlashcard(r)
 	if !valid {
 		app.badRequest(w)
 		return
@@ -93,7 +92,7 @@ func (app *application) getFlashcardsForUser(w http.ResponseWriter, r *http.Requ
 }
 
 func (app *application) updateFlashcard(w http.ResponseWriter, r *http.Request) {
-	flashcard, valid := readFlashcard(r)
+	flashcard, valid := models.ParseFlashcard(r)
 	if !valid {
 		app.badRequest(w)
 		return
@@ -145,16 +144,4 @@ func (app *application) deleteFlashcard(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	reply(w, http.StatusNoContent, nil)
-}
-
-func readFlashcard(r *http.Request) (*models.Flashcard, bool) {
-	if r.Body == nil {
-		return nil, false
-	}
-	var flashcard models.Flashcard
-	err := json.NewDecoder(r.Body).Decode(&flashcard)
-	if err != nil {
-		return nil, false
-	}
-	return &flashcard, true
 }

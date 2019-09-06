@@ -2,13 +2,12 @@ package main
 
 import (
 	"alexanderpopov.me/flcrd/pkg/models"
-	"encoding/json"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
 func (app *application) createDeck(w http.ResponseWriter, r *http.Request) {
-	deck, valid := readDeck(r)
+	deck, valid := models.ParseDeck(r)
 	if !valid {
 		app.badRequest(w)
 		return
@@ -63,7 +62,7 @@ func (app *application) getDeck(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) updateDeck(w http.ResponseWriter, r *http.Request) {
-	deck, valid := readDeck(r)
+	deck, valid := models.ParseDeck(r)
 	if !valid {
 		app.badRequest(w)
 		return
@@ -104,16 +103,4 @@ func (app *application) deleteDeck(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	reply(w, http.StatusNoContent, nil)
-}
-
-func readDeck(r *http.Request) (*models.Deck, bool) {
-	if r.Body == nil {
-		return nil, false
-	}
-	var deck models.Deck
-	err := json.NewDecoder(r.Body).Decode(&deck)
-	if err != nil {
-		return nil, false
-	}
-	return &deck, true
 }
