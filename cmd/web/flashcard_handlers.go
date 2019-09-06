@@ -8,20 +8,19 @@ import (
 )
 
 func (app *application) createFlashcard(w http.ResponseWriter, r *http.Request) {
-	flashcard := readFlashcard(w, r)
-	if flashcard == nil {
+	flashcard, valid := readFlashcard(r)
+	if !valid {
+		app.badRequest(w)
 		return
 	}
-	if errs := flashcard.Validate(); len(errs) > 0 {
-		err := map[string]interface{}{"validationError": errs}
-		w.WriteHeader(http.StatusBadRequest)
-		writeJsonResponse(w, err)
+	if errs := flashcard.Validate(); errs.Present() {
+		app.validationError(w, errs)
 		return
 	}
 	deckID := mux.Vars(r)["deckID"]
 	_, err := app.decks.Get(deckID)
 	if err == models.ErrNoRecord {
-		app.notFound(w)
+		app.deckNotFound(w)
 		return
 	}
 	if err != nil {
@@ -48,7 +47,7 @@ func (app *application) getFlashcard(w http.ResponseWriter, r *http.Request) {
 	flashcardID := mux.Vars(r)["flashcardID"]
 	flashcard, err := app.flashcards.Get(deckID, flashcardID)
 	if err == models.ErrNoRecord {
-		app.notFound(w)
+		app.flashcardNotFound(w)
 		return
 	}
 	if err != nil {
@@ -63,7 +62,7 @@ func (app *application) getPublicFlashcards(w http.ResponseWriter, r *http.Reque
 	deckID := mux.Vars(r)["deckID"]
 	_, err := app.decks.Get(deckID)
 	if err == models.ErrNoRecord {
-		app.notFound(w)
+		app.deckNotFound(w)
 		return
 	}
 	if err != nil {
@@ -82,7 +81,7 @@ func (app *application) getFlashcardsForUser(w http.ResponseWriter, r *http.Requ
 	deckID := mux.Vars(r)["deckID"]
 	_, err := app.decks.Get(deckID)
 	if err == models.ErrNoRecord {
-		app.notFound(w)
+		app.deckNotFound(w)
 		return
 	}
 	if err != nil {
@@ -98,20 +97,19 @@ func (app *application) getFlashcardsForUser(w http.ResponseWriter, r *http.Requ
 }
 
 func (app *application) updateFlashcard(w http.ResponseWriter, r *http.Request) {
-	flashcard := readFlashcard(w, r)
-	if flashcard == nil {
+	flashcard, valid := readFlashcard(r)
+	if !valid {
+		app.badRequest(w)
 		return
 	}
-	if errs := flashcard.Validate(); len(errs) > 0 {
-		err := map[string]interface{}{"validationError": errs}
-		w.WriteHeader(http.StatusBadRequest)
-		writeJsonResponse(w, err)
+	if errs := flashcard.Validate(); errs.Present() {
+		app.validationError(w, errs)
 		return
 	}
 	deckID := mux.Vars(r)["deckID"]
 	_, err := app.decks.Get(deckID)
 	if err == models.ErrNoRecord {
-		app.notFound(w)
+		app.deckNotFound(w)
 		return
 	}
 	if err != nil {
@@ -138,7 +136,7 @@ func (app *application) deleteFlashcard(w http.ResponseWriter, r *http.Request) 
 	deckID := mux.Vars(r)["deckID"]
 	_, err := app.decks.Get(deckID)
 	if err == models.ErrNoRecord {
-		app.notFound(w)
+		app.deckNotFound(w)
 		return
 	}
 	if err != nil {
@@ -154,16 +152,14 @@ func (app *application) deleteFlashcard(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func readFlashcard(w http.ResponseWriter, r *http.Request) *models.Flashcard {
+func readFlashcard(r *http.Request) (*models.Flashcard, bool) {
 	if r.Body == nil {
-		http.Error(w, "Please, send a request body", http.StatusBadRequest)
-		return nil
+		return nil, false
 	}
 	var flashcard models.Flashcard
 	err := json.NewDecoder(r.Body).Decode(&flashcard)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return nil
+		return nil, false
 	}
-	return &flashcard
+	return &flashcard, true
 }

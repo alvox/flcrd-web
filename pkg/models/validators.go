@@ -1,43 +1,42 @@
 package models
 
 import (
-	"net/url"
 	"regexp"
 )
 
 var r = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 //todo: tests
-func (u User) Validate(validateName bool) url.Values {
-	errs := url.Values{}
+func (u User) Validate(validateName bool) *ValidationErrors {
+	errs := NewValidationErrors()
 
 	if validateName && u.Name == "" {
 		errs.Add("name", "field is required")
 	}
-	if validateName && len(u.Name) > 50 {
+	if validateName && u.Name != "" && len(u.Name) > 50 {
 		errs.Add("name", "max length is 50 characters")
 	}
 	if u.Email == "" {
 		errs.Add("email", "field is required")
 	}
-	if len(u.Email) > 120 {
+	if u.Email != "" && len(u.Email) > 120 {
 		errs.Add("email", "max length is 120 characters")
 	}
-	if !r.MatchString(u.Email) {
-		errs.Add("email", "invalid format")
+	if u.Email != "" && !r.MatchString(u.Email) {
+		errs.Add("email", "invalid email address")
 	}
 	if u.Password == "" {
 		errs.Add("password", "field is required")
 	}
-	if len(u.Password) < 5 || len(u.Password) > 30 {
+	if u.Password != "" && len(u.Password) < 5 || len(u.Password) > 30 {
 		errs.Add("password", "min length is 5 characters, max length is 30 characters")
 	}
 	return errs
 }
 
 //todo: tests
-func (d Deck) Validate() url.Values {
-	errs := url.Values{}
+func (d Deck) Validate() *ValidationErrors {
+	errs := NewValidationErrors()
 
 	if d.Name == "" {
 		errs.Add("name", "field is required")
@@ -52,8 +51,8 @@ func (d Deck) Validate() url.Values {
 }
 
 //todo: tests
-func (f Flashcard) Validate() url.Values {
-	errs := url.Values{}
+func (f Flashcard) Validate() *ValidationErrors {
+	errs := NewValidationErrors()
 
 	if f.Front == "" {
 		errs.Add("front", "field is required")
@@ -70,8 +69,8 @@ func (f Flashcard) Validate() url.Values {
 	return errs
 }
 
-func (t Token) Validate() url.Values {
-	errs := url.Values{}
+func (t Token) Validate() *ValidationErrors {
+	errs := NewValidationErrors()
 
 	if t.AuthToken == "" {
 		errs.Add("auth_token", "field is required")
@@ -80,4 +79,28 @@ func (t Token) Validate() url.Values {
 		errs.Add("refresh_token", "field is required")
 	}
 	return errs
+}
+
+type ValidationErrors struct {
+	Errors []*ValidationError `json:"errors"`
+}
+
+type ValidationError struct {
+	Field   string `json:"field"`
+	Message string `json:"message"`
+}
+
+func NewValidationErrors() *ValidationErrors {
+	return &ValidationErrors{}
+}
+
+func (e *ValidationErrors) Add(field, msg string) {
+	e.Errors = append(e.Errors, &ValidationError{
+		Field:   field,
+		Message: msg,
+	})
+}
+
+func (e ValidationErrors) Present() bool {
+	return len(e.Errors) != 0
 }

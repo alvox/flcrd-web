@@ -8,15 +8,13 @@ import (
 )
 
 func (app *application) createDeck(w http.ResponseWriter, r *http.Request) {
-	deck := readDeck(w, r)
-	if deck == nil {
+	deck, valid := readDeck(r)
+	if !valid {
+		app.badRequest(w)
 		return
 	}
-	//todo: extract all validations to the separate func
-	if errs := deck.Validate(); len(errs) > 0 {
-		err := map[string]interface{}{"validationError": errs}
-		w.WriteHeader(http.StatusBadRequest)
-		writeJsonResponse(w, err)
+	if errs := deck.Validate(); errs.Present() {
+		app.validationError(w, errs)
 		return
 	}
 	id, err := app.decks.Create(deck.Name, deck.Description, r.Header.Get("UserID"), deck.Private)
@@ -57,7 +55,7 @@ func (app *application) getDeck(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["deckID"]
 	deck, err := app.decks.Get(id)
 	if err == models.ErrNoRecord {
-		app.notFound(w)
+		app.deckNotFound(w)
 		return
 	}
 	if err != nil {
@@ -69,20 +67,19 @@ func (app *application) getDeck(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) updateDeck(w http.ResponseWriter, r *http.Request) {
-	deck := readDeck(w, r)
-	if deck == nil {
+	deck, valid := readDeck(r)
+	if !valid {
+		app.badRequest(w)
 		return
 	}
-	if errs := deck.Validate(); len(errs) > 0 {
-		err := map[string]interface{}{"validationError": errs}
-		w.WriteHeader(http.StatusBadRequest)
-		writeJsonResponse(w, err)
+	if errs := deck.Validate(); errs.Present() {
+		app.validationError(w, errs)
 		return
 	}
 	deckID := mux.Vars(r)["deckID"]
 	_, err := app.decks.Get(deckID)
 	if err == models.ErrNoRecord {
-		app.notFound(w)
+		app.deckNotFound(w)
 		return
 	}
 	err = app.decks.Update(deck)
@@ -103,7 +100,7 @@ func (app *application) deleteDeck(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["deckID"]
 	_, err := app.decks.Get(id)
 	if err == models.ErrNoRecord {
-		app.notFound(w)
+		app.deckNotFound(w)
 		return
 	}
 	err = app.decks.Delete(id)
@@ -128,15 +125,14 @@ func writeJsonResponse(w http.ResponseWriter, obj interface{}) {
 	}
 }
 
-func readDeck(w http.ResponseWriter, r *http.Request) *models.Deck {
+func readDeck(r *http.Request) (*models.Deck, bool) {
 	if r.Body == nil {
-		http.Error(w, "Please, send a request body", http.StatusBadRequest)
+		return nil, false
 	}
 	var deck models.Deck
 	err := json.NewDecoder(r.Body).Decode(&deck)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return nil
+		return nil, false
 	}
-	return &deck
+	return &deck, true
 }

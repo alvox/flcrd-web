@@ -15,18 +15,18 @@ func (app *application) logRequest(next http.Handler) http.Handler {
 func (app *application) validateToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header["Authorization"] == nil {
-			app.notAuthorized(w)
+			app.accessTokenInvalid(w)
 			return
 		}
 		authHeader := strings.Split(r.Header.Get("Authorization"), " ")
 		if len(authHeader) != 2 {
-			app.notAuthorized(w)
+			app.accessTokenInvalid(w)
 			return
 		}
 		token := authHeader[1]
 		userID, err := validateAuthToken(token, false)
 		if err != nil {
-			app.notAuthorized(w)
+			app.accessTokenInvalid(w)
 			return
 		}
 		r.Header.Add("UserID", userID)

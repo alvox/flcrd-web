@@ -7,14 +7,13 @@ import (
 )
 
 func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
-	user := readUser(w, r)
-	if user == nil {
+	user, valid := readUser(r)
+	if !valid {
+		app.badRequest(w)
 		return
 	}
-	if errs := user.Validate(true); len(errs) > 0 {
-		err := map[string]interface{}{"validationError": errs}
-		w.WriteHeader(http.StatusBadRequest)
-		writeJsonResponse(w, err)
+	if errs := user.Validate(true); errs.Present() {
+		app.validationError(w, errs)
 		return
 	}
 	existingUser, err := app.users.GetByEmail(user.Email)
@@ -24,7 +23,7 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 	}
 	if existingUser != nil {
 		// log user already exists
-		app.clientError(w, http.StatusBadRequest)
+		app.duplicatedEmail(w)
 		return
 	}
 	pwdHash, err := hashAndSalt(user.Password)
@@ -52,27 +51,26 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) login(w http.ResponseWriter, r *http.Request) {
-	user := readUser(w, r)
-	if user == nil {
+	user, valid := readUser(r)
+	if !valid {
+		app.badRequest(w)
 		return
 	}
-	if errs := user.Validate(false); len(errs) > 0 {
-		err := map[string]interface{}{"validationError": errs}
-		w.WriteHeader(http.StatusBadRequest)
-		writeJsonResponse(w, err)
+	if errs := user.Validate(true); errs.Present() {
+		app.validationError(w, errs)
 		return
 	}
 	existingUser, err := app.users.GetByEmail(user.Email)
 	if err != nil {
 		if err == models.ErrNoRecord {
-			app.notFound(w)
+			app.emailOrPasswordIncorrect(w)
 			return
 		}
 		app.serverError(w, err)
 		return
 	}
 	if !checkPassword(existingUser.Password, user.Password) {
-		app.notAuthorized(w)
+		app.emailOrPasswordIncorrect(w)
 		return
 	}
 	existingUser.Token.RefreshToken, existingUser.Token.RefreshTokenExp = generateRefreshToken()
@@ -93,32 +91,31 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) refreshToken(w http.ResponseWriter, r *http.Request) {
-	token := readTokens(w, r)
-	if token == nil {
+	token, valid := readTokens(r)
+	if !valid {
+		app.badRequest(w)
 		return
 	}
-	if errs := token.Validate(); len(errs) > 0 {
-		err := map[string]interface{}{"validationError": errs}
-		w.WriteHeader(http.StatusBadRequest)
-		writeJsonResponse(w, err)
+	if errs := token.Validate(); errs.Present() {
+		app.validationError(w, errs)
 		return
 	}
 	userID, err := validateAuthToken(token.AuthToken, true)
 	if err != nil {
-		app.notAuthorized(w)
+		app.accessTokenInvalid(w)
 		return
 	}
 	user, err := app.users.Get(userID)
 	if err != nil {
 		if err == models.ErrNoRecord {
-			app.notFound(w)
+			app.accessTokenInvalid(w)
 			return
 		}
 		app.serverError(w, err)
 		return
 	}
 	if !validateRefreshToken(token.RefreshToken, user) {
-		app.notAuthorized(w)
+		app.refreshTokenInvalid(w)
 		return
 	}
 	authToken, err := generateAuthToken(userID)
@@ -130,30 +127,26 @@ func (app *application) refreshToken(w http.ResponseWriter, r *http.Request) {
 	writeJsonResponse(w, token)
 }
 
-func readUser(w http.ResponseWriter, r *http.Request) *models.User {
+func readUser(r *http.Request) (*models.User, bool) {
 	if r.Body == nil {
-		http.Error(w, "Please, send a request body", http.StatusBadRequest)
-		return nil
+		return nil, false
 	}
 	var user models.User
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return nil
+		return nil, false
 	}
-	return &user
+	return &user, true
 }
 
-func readTokens(w http.ResponseWriter, r *http.Request) *models.Token {
+func readTokens(r *http.Request) (*models.Token, bool) {
 	if r.Body == nil {
-		http.Error(w, "Please, send a request body", http.StatusBadRequest)
-		return nil
+		return nil, false
 	}
 	var token models.Token
 	err := json.NewDecoder(r.Body).Decode(&token)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return nil
+		return nil, false
 	}
-	return &token
+	return &token, true
 }
