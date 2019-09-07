@@ -21,29 +21,31 @@ services:
         aliases:
           - flcrd-test-db
 
-#  flcrd-api:
-#    container_name: flcrd-api
-#    image: flcrd-api:latest
-##    ports:
-##      - 5000:5000
-#    environment:
-#      PORT: :5000
-#      DSN: postgres://flcrd:flcrd@flcrd-test-db/flcrd?sslmode=disable
-#    networks:
-#      flcrd.nw:
-#        aliases:
-#          - flcrd-api
-#
-#  flcrd-nginx:
-#    container_name: flcrd-nginx
-#    image: nginx:1.17-alpine
-#    volumes:
-#      - /Users/al/wks/flcrd-api/env/nginx.conf:/etc/nginx/nginx.conf
-#      - /tmp/flcrd-proxy/nginx-cache:/var/cache/nginx
-#      - /tmp/flcrd-proxy/nginx-pid:/var/run
+  flcrd-api:
+    container_name: flcrd-api
+    image: registry.gitlab.com/alvox-env/registry/flcrd-api:latest
+    restart: unless-stopped
 #    ports:
-#      - 80:80
-#    networks:
-#      flcrd.nw:
-#        aliases:
-#          - flcrd-nginx
+#      - 5000:5000
+    environment:
+      PORT: :5000
+      DSN: postgres://flcrd:flcrd@flcrd-test-db/flcrd?sslmode=disable
+      APPKEY: myappkey
+    networks:
+      flcrd.nw:
+        aliases:
+          - flcrd-api
+
+  flcrd-nginx:
+    container_name: flcrd-nginx
+    image: nginx:1.17-alpine
+    volumes:
+      - /Users/al/a/flcrd-web/env/nginx.conf:/etc/nginx/nginx.conf
+      - /tmp/flcrd-proxy/nginx-cache:/var/cache/nginx
+      - /tmp/flcrd-proxy/nginx-pid:/var/run
+    ports:
+      - 80:80
+    networks:
+      flcrd.nw:
+        aliases:
+          - flcrd-nginx
