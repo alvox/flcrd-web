@@ -30,11 +30,11 @@ func (m *DeckModel) Update(deck *models.Deck) error {
 }
 
 func (m *DeckModel) Get(id string) (*models.Deck, error) {
-	stmt := `select id, name, description, created, private,
+	stmt := `select id, name, description, created, private, created_by,
         (select count(*) from flcrd.flashcard where deck_id = deck.id) as cards_count
          from flcrd.deck where id = $1;`
 	d := &models.Deck{}
-	err := m.DB.QueryRow(stmt, id).Scan(&d.ID, &d.Name, &d.Description, &d.Created, &d.Private, &d.CardsCount)
+	err := m.DB.QueryRow(stmt, id).Scan(&d.ID, &d.Name, &d.Description, &d.Created, &d.Private, &d.CreatedBy, &d.CardsCount)
 	if err == sql.ErrNoRows {
 		return nil, models.ErrNoRecord
 	}
@@ -46,7 +46,7 @@ func (m *DeckModel) Get(id string) (*models.Deck, error) {
 }
 
 func (m *DeckModel) GetPublic() ([]*models.Deck, error) {
-	stmt := `select id, name, description, created, private,
+	stmt := `select id, name, description, created, private, created_by,
        (select count(*) from flcrd.flashcard where deck_id = deck.id) as cards_count 
        from flcrd.deck where private = false;`
 	rows, err := m.DB.Query(stmt)
@@ -57,7 +57,7 @@ func (m *DeckModel) GetPublic() ([]*models.Deck, error) {
 	decks := []*models.Deck{}
 	for rows.Next() {
 		d := &models.Deck{}
-		err = rows.Scan(&d.ID, &d.Name, &d.Description, &d.Created, &d.Private, &d.CardsCount)
+		err = rows.Scan(&d.ID, &d.Name, &d.Description, &d.Created, &d.Private, &d.CreatedBy, &d.CardsCount)
 		if err != nil {
 			return nil, err
 		}
@@ -71,7 +71,7 @@ func (m *DeckModel) GetPublic() ([]*models.Deck, error) {
 }
 
 func (m *DeckModel) GetForUser(userID string) ([]*models.Deck, error) {
-	stmt := `select id, name, description, created, private,
+	stmt := `select id, name, description, created, private, created_by,
        (select count(*) from flcrd.flashcard where deck_id = deck.id) as cards_count 
        from flcrd.deck where created_by = $1;`
 	rows, err := m.DB.Query(stmt, userID)
@@ -82,7 +82,7 @@ func (m *DeckModel) GetForUser(userID string) ([]*models.Deck, error) {
 	decks := []*models.Deck{}
 	for rows.Next() {
 		d := &models.Deck{}
-		err = rows.Scan(&d.ID, &d.Name, &d.Description, &d.Created, &d.Private, &d.CardsCount)
+		err = rows.Scan(&d.ID, &d.Name, &d.Description, &d.Created, &d.Private, &d.CreatedBy, &d.CardsCount)
 		if err != nil {
 			return nil, err
 		}
