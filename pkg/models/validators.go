@@ -50,6 +50,18 @@ func (d Deck) Validate() *ValidationErrors {
 	return errs
 }
 
+func (d Deck) ValidateWithID(id string) *ValidationErrors {
+	errs := d.Validate()
+
+	if d.ID == "" {
+		errs.Add("id", "field is required")
+	}
+	if d.ID != id {
+		errs.Add("id", "deck id doesn't match with path param")
+	}
+	return errs
+}
+
 //todo: tests
 func (f Flashcard) Validate() *ValidationErrors {
 	errs := NewValidationErrors()

@@ -67,18 +67,17 @@ func (app *application) updateDeck(w http.ResponseWriter, r *http.Request) {
 		app.badRequest(w)
 		return
 	}
-	if errs := deck.Validate(); errs.Present() {
+	deckID := mux.Vars(r)["deckID"]
+	if errs := deck.ValidateWithID(deckID); errs.Present() {
 		app.validationError(w, errs)
 		return
 	}
-	deckID := mux.Vars(r)["deckID"]
-	_, err := app.decks.Get(deckID)
-	if err == models.ErrNoRecord {
-		app.deckNotFound(w)
-		return
-	}
-	err = app.decks.Update(deck)
+	err := app.decks.Update(deck)
 	if err != nil {
+		if err == models.ErrNoRecord {
+			app.deckNotFound(w)
+			return
+		}
 		app.serverError(w, err)
 		return
 	}
