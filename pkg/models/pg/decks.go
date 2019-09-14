@@ -30,11 +30,15 @@ func (m *DeckModel) Update(deck *models.Deck) error {
 }
 
 func (m *DeckModel) Get(id string) (*models.Deck, error) {
-	stmt := `select id, name, description, created, private, created_by,
-        (select count(*) from flcrd.flashcard where deck_id = deck.id) as cards_count
-         from flcrd.deck where id = $1;`
+	stmt := `select d.id, d.name, d.description, d.created, d.private,
+                 (select count(*) from flcrd.flashcard where deck_id = d.id) as cards_count,
+                 u.id, u.name
+             from flcrd.deck d
+             left join flcrd.user u on u.id = d.created_by
+             where d.id = $1;`
 	d := &models.Deck{}
-	err := m.DB.QueryRow(stmt, id).Scan(&d.ID, &d.Name, &d.Description, &d.Created, &d.Private, &d.CreatedBy, &d.CardsCount)
+	err := m.DB.QueryRow(stmt, id).Scan(&d.ID, &d.Name, &d.Description, &d.Created, &d.Private,
+		&d.CardsCount, &d.CreatedBy.ID, &d.CreatedBy.Name)
 	if err == sql.ErrNoRows {
 		return nil, models.ErrNoRecord
 	}
@@ -46,9 +50,12 @@ func (m *DeckModel) Get(id string) (*models.Deck, error) {
 }
 
 func (m *DeckModel) GetPublic() ([]*models.Deck, error) {
-	stmt := `select id, name, description, created, private, created_by,
-       (select count(*) from flcrd.flashcard where deck_id = deck.id) as cards_count 
-       from flcrd.deck where private = false;`
+	stmt := `select d.id, d.name, d.description, d.created, d.private,
+                 (select count(*) from flcrd.flashcard where deck_id = d.id) as cards_count,
+                 u.id, u.name
+             from flcrd.deck d
+             left join flcrd.user u on u.id = d.created_by
+             where d.private = false;`
 	rows, err := m.DB.Query(stmt)
 	if err != nil {
 		return nil, err
@@ -57,7 +64,8 @@ func (m *DeckModel) GetPublic() ([]*models.Deck, error) {
 	decks := []*models.Deck{}
 	for rows.Next() {
 		d := &models.Deck{}
-		err = rows.Scan(&d.ID, &d.Name, &d.Description, &d.Created, &d.Private, &d.CreatedBy, &d.CardsCount)
+		err = rows.Scan(&d.ID, &d.Name, &d.Description, &d.Created, &d.Private,
+			&d.CardsCount, &d.CreatedBy.ID, &d.CreatedBy.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -71,9 +79,12 @@ func (m *DeckModel) GetPublic() ([]*models.Deck, error) {
 }
 
 func (m *DeckModel) GetForUser(userID string) ([]*models.Deck, error) {
-	stmt := `select id, name, description, created, private, created_by,
-       (select count(*) from flcrd.flashcard where deck_id = deck.id) as cards_count 
-       from flcrd.deck where created_by = $1;`
+	stmt := `select d.id, d.name, d.description, d.created, d.private,
+                 (select count(*) from flcrd.flashcard where deck_id = d.id) as cards_count,
+                 u.id, u.name
+             from flcrd.deck d
+             left join flcrd.user u on u.id = d.created_by
+             where u.id = $1;`
 	rows, err := m.DB.Query(stmt, userID)
 	if err != nil {
 		return nil, err
@@ -82,7 +93,8 @@ func (m *DeckModel) GetForUser(userID string) ([]*models.Deck, error) {
 	decks := []*models.Deck{}
 	for rows.Next() {
 		d := &models.Deck{}
-		err = rows.Scan(&d.ID, &d.Name, &d.Description, &d.Created, &d.Private, &d.CreatedBy, &d.CardsCount)
+		err = rows.Scan(&d.ID, &d.Name, &d.Description, &d.Created, &d.Private,
+			&d.CardsCount, &d.CreatedBy.ID, &d.CreatedBy.Name)
 		if err != nil {
 			return nil, err
 		}

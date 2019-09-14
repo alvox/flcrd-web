@@ -16,6 +16,10 @@ var testDecks = [2]*models.Deck{
 		Created:     time.Date(2019, 1, 1, 10, 0, 0, 0, time.UTC),
 		Private:     true,
 		CardsCount:  3,
+		CreatedBy: models.DeckCreator{
+			ID:   "testuser_id_1",
+			Name: "Testuser1",
+		},
 	}, {
 		ID:          "test_deck_id_2",
 		Name:        "Test Name 2",
@@ -23,6 +27,10 @@ var testDecks = [2]*models.Deck{
 		Created:     time.Date(2019, 2, 2, 12, 22, 0, 0, time.UTC),
 		Private:     false,
 		CardsCount:  2,
+		CreatedBy: models.DeckCreator{
+			ID:   "testuser_id_2",
+			Name: "Testuser2",
+		},
 	},
 }
 
@@ -34,7 +42,7 @@ func TestDeckModel_Create_Positive(t *testing.T) {
 	defer teardown()
 	model := DeckModel{db}
 
-	id, err := model.Create("Test Deck", "Deck, created from test", "test_user_1", true)
+	id, err := model.Create("Test Deck", "Deck, created from test", "testuser_id_1", true)
 	if err != nil {
 		t.Errorf("failed to create new deck: %s", err.Error())
 	}

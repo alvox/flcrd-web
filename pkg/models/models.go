@@ -36,10 +36,14 @@ type Deck struct {
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
 	CardsCount  int         `json:"cards_count"`
-	Cards       []Flashcard `json:"cards"`
 	Created     time.Time   `json:"created"`
-	CreatedBy   string      `json:"created_by"`
+	CreatedBy   DeckCreator `json:"created_by"`
 	Private     bool        `json:"private"`
+}
+
+type DeckCreator struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 func ParseDeck(r *http.Request) (*Deck, bool) {
