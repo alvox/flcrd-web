@@ -9,14 +9,17 @@ var mockDeck = &models.Deck{
 	ID:          "mock_deck_id_1",
 	Name:        "Mock Deck",
 	Description: "This is a mock deck",
-	Private:     true,
+	Public:      false,
 	Created:     time.Now(),
-	CreatedBy:   "test_user_1",
+	CreatedBy: models.DeckCreator{
+		ID:   "test_user_1",
+		Name: "Testuser1",
+	},
 }
 
 type DeckModel struct{}
 
-func (m *DeckModel) Create(name, description, createdBy string, private bool) (*string, error) {
+func (m *DeckModel) Create(name, description, createdBy string, public bool) (*string, error) {
 	return &mockDeck.ID, nil
 }
 

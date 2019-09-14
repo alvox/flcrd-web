@@ -66,7 +66,7 @@ func (m *FlashcardModel) GetForUser(deckID, userID string) ([]*models.Flashcard,
 
 func (m *FlashcardModel) GetPublic(deckID string) ([]*models.Flashcard, error) {
 	stmt := `select f.id, f.deck_id, f.front, f.rear, f.created from flcrd.flashcard f 
-        join flcrd.deck d on d.id = f.deck_id where d.id = $1 and d.private = false;`
+        join flcrd.deck d on d.id = f.deck_id where d.id = $1 and d.public = true;`
 	rows, err := m.DB.Query(stmt, deckID)
 	if err != nil {
 		return nil, err

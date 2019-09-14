@@ -62,7 +62,7 @@ func TestUserModel_Create_Email_Exists(t *testing.T) {
 
 	u := &models.User{
 		Name:     "Test",
-		Email:    "testuser@example.com",
+		Email:    "testuser1@example.com",
 		Password: "some_password",
 		Token: models.Token{
 			AccessToken:  "authtoken",

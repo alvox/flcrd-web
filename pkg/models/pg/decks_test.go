@@ -14,7 +14,7 @@ var testDecks = [2]*models.Deck{
 		Name:        "Test Name 1",
 		Description: "Test Description 1",
 		Created:     time.Date(2019, 1, 1, 10, 0, 0, 0, time.UTC),
-		Private:     true,
+		Public:      false,
 		CardsCount:  3,
 		CreatedBy: models.DeckCreator{
 			ID:   "testuser_id_1",
@@ -25,7 +25,7 @@ var testDecks = [2]*models.Deck{
 		Name:        "Test Name 2",
 		Description: "Test Description 2",
 		Created:     time.Date(2019, 2, 2, 12, 22, 0, 0, time.UTC),
-		Private:     false,
+		Public:      true,
 		CardsCount:  2,
 		CreatedBy: models.DeckCreator{
 			ID:   "testuser_id_2",

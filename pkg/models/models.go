@@ -38,7 +38,7 @@ type Deck struct {
 	CardsCount  int         `json:"cards_count"`
 	Created     time.Time   `json:"created"`
 	CreatedBy   DeckCreator `json:"created_by"`
-	Private     bool        `json:"private"`
+	Public      bool        `json:"public"`
 }
 
 type DeckCreator struct {

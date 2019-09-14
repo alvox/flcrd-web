@@ -16,7 +16,7 @@ func (app *application) createDeck(w http.ResponseWriter, r *http.Request) {
 		app.validationError(w, errs)
 		return
 	}
-	id, err := app.decks.Create(deck.Name, deck.Description, r.Header.Get("UserID"), deck.Private)
+	id, err := app.decks.Create(deck.Name, deck.Description, r.Header.Get("UserID"), deck.Public)
 	if err != nil {
 		app.serverError(w, err)
 		return
