@@ -20,6 +20,7 @@ type application struct {
 		GetPublic() ([]*models.Deck, error)
 		Update(*models.Deck) error
 		Delete(string) error
+		Search([]string) ([]*models.Deck, error)
 	}
 	flashcards interface {
 		Create(*models.Flashcard) (*string, error)

@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var testDecks = [2]*models.Deck{
+var testDecks = [3]*models.Deck{
 	{
 		ID:          "test_deck_id_1",
 		Name:        "Test Name 1",
@@ -30,6 +30,17 @@ var testDecks = [2]*models.Deck{
 		CreatedBy: models.DeckCreator{
 			ID:   "testuser_id_2",
 			Name: "Testuser2",
+		},
+	}, {
+		ID:          "test_deck_id_3",
+		Name:        "Test Name 3",
+		Description: "Test Description 3",
+		Created:     time.Date(2019, 3, 3, 12, 22, 0, 0, time.UTC),
+		Public:      true,
+		CardsCount:  0,
+		CreatedBy: models.DeckCreator{
+			ID:   "testuser_id_1",
+			Name: "Testuser1",
 		},
 	},
 }
@@ -115,7 +126,7 @@ func TestDeckModel_GetForUser(t *testing.T) {
 		{
 			name:      "User 1",
 			userId:    "testuser_id_1",
-			wantDecks: []*models.Deck{testDecks[0]},
+			wantDecks: []*models.Deck{testDecks[0], testDecks[2]},
 		},
 		{
 			name:      "User 2",
@@ -133,12 +144,14 @@ func TestDeckModel_GetForUser(t *testing.T) {
 			db, teardown := newTestDB(t)
 			defer teardown()
 			model := DeckModel{db}
-			deck, err := model.GetForUser(tt.userId)
+			decks, err := model.GetForUser(tt.userId)
 			if err != nil {
 				t.Errorf("unexpected error: %s", err)
 			}
-			if !reflect.DeepEqual(deck, tt.wantDecks) {
-				t.Errorf("want %v; got %v", tt.wantDecks, deck)
+			for i, deck := range tt.wantDecks {
+				if !reflect.DeepEqual(deck, decks[i]) {
+					t.Errorf("want %v; got %v", deck, decks[i])
+				}
 			}
 		})
 	}
@@ -155,7 +168,7 @@ func TestDeckModel_GetPublic_Positive(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
-	if len(decks) != 1 {
+	if len(decks) != 2 {
 		t.Errorf("unexpected collection size: want %d, got %d", 1, len(decks))
 	}
 	if !reflect.DeepEqual(testDecks[1], decks[0]) {
@@ -250,8 +263,8 @@ func TestDeckModel_Search(t *testing.T) {
 			wantLen: 2,
 		},
 		{
-			name:    "First",
-			terms:   []string{"Description", "1"},
+			name:    "Third deck",
+			terms:   []string{"Description", "3"},
 			wantLen: 1,
 		},
 		{

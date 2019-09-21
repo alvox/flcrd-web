@@ -60,7 +60,7 @@ func (m *DeckModel) GetPublic() ([]*models.Deck, error) {
                  u.id, u.name
              from flcrd.deck d
              left join flcrd.user u on u.id = d.created_by
-             where d.public = true;`
+             where d.public = true order by d.created;`
 	rows, err := m.DB.Query(stmt)
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (m *DeckModel) GetForUser(userID string) ([]*models.Deck, error) {
                  u.id, u.name
              from flcrd.deck d
              left join flcrd.user u on u.id = d.created_by
-             where u.id = $1;`
+             where u.id = $1 order by d.created;`
 	rows, err := m.DB.Query(stmt, userID)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (m *DeckModel) Search(terms []string) ([]*models.Deck, error) {
                  u.id, u.name
              from flcrd.deck d
              left join flcrd.user u on u.id = d.created_by
-             where d.search_tokens @@ to_tsquery($1);`
+             where d.public = true and d.search_tokens @@ to_tsquery($1) order by d.created;`
 	rows, err := m.DB.Query(stmt, t)
 	if err != nil {
 		return nil, err

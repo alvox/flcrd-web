@@ -55,3 +55,7 @@ func (m *DeckModel) GetForUser(userID string) ([]*models.Deck, error) {
 func (m *DeckModel) Delete(id string) error {
 	return nil
 }
+
+func (m *DeckModel) Search(terms []string) ([]*models.Deck, error) {
+	return nil, nil
+}
