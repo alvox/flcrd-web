@@ -9,6 +9,7 @@ create table flcrd.deck (
     created     timestamp    not null default now(),
     created_by  varchar(40)  not null default 'anonymous',
     public      boolean      not null default false,
+    search_tokens tsvector,
 
     primary key (id)
 );

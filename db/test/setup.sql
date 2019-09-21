@@ -9,6 +9,7 @@ create table flcrd.deck (
     created     timestamp    not null default now(),
     created_by  varchar(40)  not null default 'anonymous',
     public      boolean      not null default false,
+    search_tokens tsvector,
 
     primary key (id)
 );
@@ -42,9 +43,9 @@ insert into flcrd.user (id, name, email, password, refresh_token)
 values ('testuser_id_1', 'Testuser1', 'testuser1@example.com', '12345', 'refreshtoken'),
        ('testuser_id_2', 'Testuser2', 'testuser2@example.com', '54321', 'refreshtoken');
 
-insert into flcrd.deck (id, name, description, created, created_by, public)
-values ('test_deck_id_1', 'Test Name 1', 'Test Description 1', '2019-01-01 10:00:00', 'testuser_id_1', false),
-       ('test_deck_id_2', 'Test Name 2', 'Test Description 2', '2019-02-02 12:22:00', 'testuser_id_2', true);
+insert into flcrd.deck (id, name, description, created, created_by, public, search_tokens)
+values ('test_deck_id_1', 'Test Name 1', 'Test Description 1', '2019-01-01 10:00:00', 'testuser_id_1', false, to_tsvector('Test Name 1 Test Description 1')),
+       ('test_deck_id_2', 'Test Name 2', 'Test Description 2', '2019-02-02 12:22:00', 'testuser_id_2', true, to_tsvector('Test Name 2 Test Description 2'));
 
 insert into flcrd.flashcard (id, deck_id, front, rear, created)
 values ('test_flashcard_id_1', 'test_deck_id_1', 'Test Front 1 1', 'Test Rear 1 1', '2019-01-01 10:00:00'),
