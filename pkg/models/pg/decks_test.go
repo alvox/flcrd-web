@@ -193,3 +193,49 @@ func TestDeckModel_Delete_NonExistent(t *testing.T) {
 		t.Errorf("unexpected error: want %s; got %s", models.ErrNoRecord, err)
 	}
 }
+
+func TestDeckModel_Search(t *testing.T) {
+	if testing.Short() {
+		t.Skip("pg: skipping database test")
+	}
+	tests := []struct {
+		name    string
+		terms   []string
+		wantLen int
+	}{
+		{
+			name:    "All",
+			terms:   []string{"Test"},
+			wantLen: 2,
+		},
+		{
+			name:    "First",
+			terms:   []string{"Description", "1"},
+			wantLen: 1,
+		},
+		{
+			name:    "All, two terms",
+			terms:   []string{"Test", "Name"},
+			wantLen: 2,
+		},
+		{
+			name:    "None",
+			terms:   []string{"Not", "Here"},
+			wantLen: 0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			db, teardown := newTestDB(t)
+			defer teardown()
+			model := DeckModel{db}
+			decks, err := model.Search(tt.terms)
+			if err != nil {
+				t.Errorf("unexpected error: %s", err)
+			}
+			if len(decks) != tt.wantLen {
+				t.Errorf("unexpected collection size: want %d, got %d", tt.wantLen, len(decks))
+			}
+		})
+	}
+}
