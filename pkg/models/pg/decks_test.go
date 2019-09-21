@@ -103,6 +103,47 @@ func TestDeckModel_Get(t *testing.T) {
 	}
 }
 
+func TestDeckModel_GetForUser(t *testing.T) {
+	if testing.Short() {
+		t.Skip("pg: skipping database test")
+	}
+	tests := []struct {
+		name      string
+		userId    string
+		wantDecks []*models.Deck
+	}{
+		{
+			name:      "User 1",
+			userId:    "testuser_id_1",
+			wantDecks: []*models.Deck{testDecks[0]},
+		},
+		{
+			name:      "User 2",
+			userId:    "testuser_id_2",
+			wantDecks: []*models.Deck{testDecks[1]},
+		},
+		{
+			name:      "Non-existent user",
+			userId:    "non-existing-testuser",
+			wantDecks: []*models.Deck{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			db, teardown := newTestDB(t)
+			defer teardown()
+			model := DeckModel{db}
+			deck, err := model.GetForUser(tt.userId)
+			if err != nil {
+				t.Errorf("unexpected error: %s", err)
+			}
+			if !reflect.DeepEqual(deck, tt.wantDecks) {
+				t.Errorf("want %v; got %v", tt.wantDecks, deck)
+			}
+		})
+	}
+}
+
 func TestDeckModel_GetPublic_Positive(t *testing.T) {
 	if testing.Short() {
 		t.Skip("pg: skipping database test")

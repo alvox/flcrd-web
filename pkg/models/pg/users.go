@@ -40,6 +40,7 @@ func (m *UserModel) Get(userID string) (*models.User, error) {
 		return nil, err
 	}
 	d.Created = d.Created.UTC()
+	d.Token.RefreshTokenExp = d.Token.RefreshTokenExp.UTC()
 	return d, nil
 }
 
