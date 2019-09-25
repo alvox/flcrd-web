@@ -11,10 +11,10 @@ type UserModel struct {
 }
 
 func (m *UserModel) Create(user *models.User) (*string, error) {
-	stmt := `insert into flcrd.user (name, email, password, refresh_token, refresh_token_exp) 
-             values ($1, $2, $3, $4, $5) returning id;`
+	stmt := `insert into flcrd.user (name, email, password, status, refresh_token, refresh_token_exp) 
+             values ($1, $2, $3, $4, $5, $6) returning id;`
 	var id string
-	err := m.DB.QueryRow(stmt, user.Name, user.Email, user.Password,
+	err := m.DB.QueryRow(stmt, user.Name, user.Email, user.Password, user.Status,
 		user.Token.RefreshToken, user.Token.RefreshTokenExp).Scan(&id)
 	if err != nil {
 		if err, ok := err.(*pq.Error); ok {
@@ -28,10 +28,10 @@ func (m *UserModel) Create(user *models.User) (*string, error) {
 }
 
 func (m *UserModel) Get(userID string) (*models.User, error) {
-	stmt := `select id, name, email, password, created, refresh_token, refresh_token_exp 
+	stmt := `select id, name, email, password, status, created, refresh_token, refresh_token_exp 
              from flcrd.user where id = $1;`
 	d := &models.User{}
-	err := m.DB.QueryRow(stmt, userID).Scan(&d.ID, &d.Name, &d.Email, &d.Password, &d.Created,
+	err := m.DB.QueryRow(stmt, userID).Scan(&d.ID, &d.Name, &d.Email, &d.Password, &d.Status, &d.Created,
 		&d.Token.RefreshToken, &d.Token.RefreshTokenExp)
 	if err == sql.ErrNoRows {
 		return nil, models.ErrNoRecord
@@ -45,10 +45,10 @@ func (m *UserModel) Get(userID string) (*models.User, error) {
 }
 
 func (m *UserModel) GetByEmail(email string) (*models.User, error) {
-	stmt := `select id, name, email, password, created, refresh_token, refresh_token_exp 
+	stmt := `select id, name, email, password, status, created, refresh_token, refresh_token_exp 
              from flcrd.user where email = $1;`
 	d := &models.User{}
-	err := m.DB.QueryRow(stmt, email).Scan(&d.ID, &d.Name, &d.Email, &d.Password, &d.Created,
+	err := m.DB.QueryRow(stmt, email).Scan(&d.ID, &d.Name, &d.Email, &d.Password, &d.Status, &d.Created,
 		&d.Token.RefreshToken, &d.Token.RefreshTokenExp)
 	if err == sql.ErrNoRows {
 		return nil, models.ErrNoRecord
@@ -63,6 +63,15 @@ func (m *UserModel) GetByEmail(email string) (*models.User, error) {
 func (m *UserModel) UpdateRefreshToken(user *models.User) error {
 	stmt := `update flcrd.user set refresh_token = $1, refresh_token_exp = $2 where id = $3;`
 	_, err := m.DB.Exec(stmt, user.Token.RefreshToken, user.Token.RefreshTokenExp, user.ID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *UserModel) UpdateStatus(user *models.User) error {
+	stmt := `update flcrd.user set status = $1 where id = $2;`
+	_, err := m.DB.Exec(stmt, user.Status, user.ID)
 	if err != nil {
 		return err
 	}

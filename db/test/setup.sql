@@ -30,6 +30,7 @@ create table flcrd.user (
     name              varchar(128) not null,
     email             varchar(128) not null,
     password          varchar(255) not null,
+    status            varchar(50)  not null,
     refresh_token     varchar(40)  not null default '',
     refresh_token_exp timestamp    not null default now(),
     created           timestamp    not null default now(),
@@ -39,9 +40,9 @@ create table flcrd.user (
 create unique index user_email_idx on flcrd.user(email);
 
 -- DATA --
-insert into flcrd.user (id, name, email, password, refresh_token, created, refresh_token_exp)
-values ('testuser_id_1', 'Testuser1', 'testuser1@example.com', '12345', 'refreshtoken', '2019-01-01 09:00:00', '2019-02-02 10:00:00'),
-       ('testuser_id_2', 'Testuser2', 'testuser2@example.com', '54321', 'refreshtoken', '2019-01-01 12:00:00', '2019-03-03 10:00:00');
+insert into flcrd.user (id, name, email, password, status, refresh_token, created, refresh_token_exp)
+values ('testuser_id_1', 'Testuser1', 'testuser1@example.com', '12345', 'ACTIVE', 'refreshtoken', '2019-01-01 09:00:00', '2019-02-02 10:00:00'),
+       ('testuser_id_2', 'Testuser2', 'testuser2@example.com', '54321', 'PENDING', 'refreshtoken', '2019-01-01 12:00:00', '2019-03-03 10:00:00');
 
 insert into flcrd.deck (id, name, description, created, created_by, public, search_tokens)
 values ('test_deck_id_1', 'Test Name 1', 'Test Description 1', '2019-01-01 10:00:00', 'testuser_id_1', false, to_tsvector('Test Name 1 Test Description 1')),

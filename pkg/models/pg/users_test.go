@@ -15,25 +15,23 @@ func TestUserModel_Create_Positive(t *testing.T) {
 	db, teardown := newTestDB(t)
 	defer teardown()
 	model := UserModel{db}
-
 	exp, e := time.Parse(
 		time.RFC3339,
 		"2019-12-01T22:08:41+00:00")
 	if e != nil {
 		t.Errorf("unexpected error while preparing test data: %s", e.Error())
 	}
-
 	u := &models.User{
 		Name:     "Test",
 		Email:    "test_email_1@example.com",
 		Password: "some_password",
+		Status:   "PENDING",
 		Token: models.Token{
 			AccessToken:     "authtoken",
 			RefreshToken:    "refreshtoken",
 			RefreshTokenExp: exp,
 		},
 	}
-
 	_, err := model.Create(u)
 	if err != nil {
 		t.Error("Failed to create new user")
@@ -51,6 +49,9 @@ func TestUserModel_Create_Positive(t *testing.T) {
 	if user.Password != "some_password" {
 		t.Errorf("invalid user password: %s", user.Password)
 	}
+	if user.Status != "PENDING" {
+		t.Errorf("invalid user status: %s", user.Status)
+	}
 }
 
 func TestUserModel_Create_Email_Exists(t *testing.T) {
@@ -60,17 +61,16 @@ func TestUserModel_Create_Email_Exists(t *testing.T) {
 	db, teardown := newTestDB(t)
 	defer teardown()
 	model := UserModel{db}
-
 	u := &models.User{
 		Name:     "Test",
 		Email:    "testuser1@example.com",
 		Password: "some_password",
+		Status:   "PENDING",
 		Token: models.Token{
 			AccessToken:  "authtoken",
 			RefreshToken: "refreshtoken",
 		},
 	}
-
 	_, err := model.Create(u)
 	if err == nil {
 		t.Error("expect unique constraint violation")
@@ -100,6 +100,7 @@ func TestUserModel_Get(t *testing.T) {
 				Name:     "Testuser1",
 				Email:    "testuser1@example.com",
 				Password: "12345",
+				Status:   "ACTIVE",
 				Created:  time.Date(2019, 1, 1, 9, 0, 0, 0, time.UTC),
 				Token: models.Token{
 					AccessToken:     "",
@@ -136,18 +137,15 @@ func TestUserModel_UpdateRefreshToken(t *testing.T) {
 	if testing.Short() {
 		t.Skip("pg: skipping database test")
 	}
-
 	db, teardown := newTestDB(t)
 	defer teardown()
 	model := UserModel{db}
-
 	exp, e := time.Parse(
 		time.RFC3339,
 		"2019-04-17T11:57:00+00:00")
 	if e != nil {
 		t.Errorf("unexpected error while preparing test data: %s", e.Error())
 	}
-
 	u := &models.User{
 		ID: "testuser_id_2",
 		Token: models.Token{
@@ -169,5 +167,28 @@ func TestUserModel_UpdateRefreshToken(t *testing.T) {
 	if user.Token.RefreshTokenExp != time.Date(2019, 4, 17, 11, 57, 0, 0, time.UTC) {
 		t.Errorf("invalid refresh token expiration time: %s", user.Token.RefreshTokenExp)
 	}
+}
 
+func TestUserModel_UpdateStatus(t *testing.T) {
+	if testing.Short() {
+		t.Skip("pg: skipping database test")
+	}
+	db, teardown := newTestDB(t)
+	defer teardown()
+	model := UserModel{db}
+	u := &models.User{
+		ID:     "testuser_id_2",
+		Status: "ACTIVE",
+	}
+	err := model.UpdateStatus(u)
+	if err != nil {
+		t.Errorf("failed to update user status: %s", err.Error())
+	}
+	user, err := model.Get("testuser_id_2")
+	if err != nil {
+		t.Errorf("failed to read test user: %s", err.Error())
+	}
+	if user.Status != "ACTIVE" {
+		t.Errorf("invalid user status: %s", user.Status)
+	}
 }

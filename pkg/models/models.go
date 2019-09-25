@@ -63,6 +63,7 @@ type User struct {
 	Name     string    `json:"name"`
 	Email    string    `json:"email"`
 	Password string    `json:"password,omitempty"`
+	Status   string    `json:"status"`
 	Created  time.Time `json:"created"`
 	Token    Token     `json:"token,omitempty"`
 }
