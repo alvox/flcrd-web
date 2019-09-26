@@ -36,6 +36,14 @@ type application struct {
 		GetByEmail(string) (*models.User, error)
 		UpdateRefreshToken(user *models.User) error
 	}
+	verification interface {
+		Create(code models.VerificationCode) (string, error)
+		Get(string) (*models.VerificationCode, error)
+		Delete(code models.VerificationCode) error
+	}
+	mailSender interface {
+		SendConfirmation(string, string)
+	}
 	infoLog  *log.Logger
 	errorLog *log.Logger
 }
@@ -44,6 +52,8 @@ func main() {
 	port := flag.String("port", ":5000", "Application port")
 	dsn := flag.String("dsn", "postgres://flcrd:flcrd@flcrd-test-db/flcrd?sslmode=disable", "Postgres data source")
 	key := flag.String("appkey", "test-key", "Application key")
+	mailUrl := flag.String("mail_api_url", "", "URL to the email service")
+	mailKey := flag.String("mail_api_key", "", "API key to the email service")
 	flag.Parse()
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
@@ -54,11 +64,16 @@ func main() {
 		errorLog.Fatal(err)
 	}
 	app := &application{
-		decks:      &pg.DeckModel{DB: db},
-		flashcards: &pg.FlashcardModel{DB: db},
-		users:      &pg.UserModel{DB: db},
-		infoLog:    infoLog,
-		errorLog:   errorLog,
+		decks:        &pg.DeckModel{DB: db},
+		flashcards:   &pg.FlashcardModel{DB: db},
+		users:        &pg.UserModel{DB: db},
+		verification: &pg.VerificationModel{DB: db},
+		mailSender: &MailSender{
+			baseUrl: *mailUrl,
+			apiKey:  *mailKey,
+		},
+		infoLog:  infoLog,
+		errorLog: errorLog,
 	}
 
 	srv := &http.Server{

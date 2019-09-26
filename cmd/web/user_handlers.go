@@ -2,6 +2,7 @@ package main
 
 import (
 	"alexanderpopov.me/flcrd/pkg/models"
+	"fmt"
 	"net/http"
 )
 
@@ -31,6 +32,7 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 	}
 	user.Password = pwdHash
 	user.Token.RefreshToken, user.Token.RefreshTokenExp = generateRefreshToken()
+	user.Status = "PENDING"
 	userId, err := app.users.Create(user)
 	if err != nil {
 		app.serverError(w, err)
@@ -45,6 +47,13 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 	}
 	user.Token.AccessToken = *accessToken
 	user.Password = ""
+
+	code := generateVerificationCode(user.ID)
+	c, err := app.verification.Create(code)
+	if err != nil {
+		app.serverError(w, err)
+	}
+	app.mailSender.SendConfirmation(user.Email, fmt.Sprintf("https://flashcards.rocks/activate/%s", c))
 	reply(w, http.StatusCreated, user)
 }
 

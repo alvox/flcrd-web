@@ -94,3 +94,11 @@ func validateRefreshToken(token string, user *models.User) bool {
 	}
 	return true
 }
+
+func generateVerificationCode(userID string) models.VerificationCode {
+	return models.VerificationCode{
+		UserID:  userID,
+		Code:    uniuri.NewLen(40),
+		CodeExp: time.Now().Add(24 * time.Hour * 5),
+	}
+}
