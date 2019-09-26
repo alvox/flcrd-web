@@ -4,21 +4,20 @@ import (
 	"alexanderpopov.me/flcrd/pkg/models"
 	"database/sql"
 	"github.com/lib/pq"
-	"time"
 )
 
 type VerificationModel struct {
 	DB *sql.DB
 }
 
-func (m *VerificationModel) Create(userID, code string, exp time.Time) (string, error) {
+func (m *VerificationModel) Create(code models.VerificationCode) (string, error) {
 	stmt := `insert into flcrd.verification_code (user_id, code, code_exp) values ($1, $2, $3) returning code;`
 	var c string
-	err := m.DB.QueryRow(stmt, userID, code, exp).Scan(&c)
+	err := m.DB.QueryRow(stmt, code.UserID, code.Code, code.CodeExp).Scan(&c)
 	if err != nil {
 		if err, ok := err.(*pq.Error); ok {
 			if "unique_violation" == err.Code.Name() {
-				return "", models.ErrNonUniqueEmail
+				return "", models.ErrNonUniqueCode
 			}
 		}
 		return "", err

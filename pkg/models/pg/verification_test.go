@@ -12,7 +12,12 @@ func TestVerificationModel_Create(t *testing.T) {
 	db, teardown := newTestDB(t)
 	defer teardown()
 	model := VerificationModel{db}
-	c, err := model.Create("test_user_1", "testcode", parseTime("2019-04-17T11:57:00+00:00", t))
+	code := models.VerificationCode{
+		UserID:  "testuser_id_1",
+		Code:    "testcode",
+		CodeExp: parseTime("2019-04-17T11:57:00+00:00", t),
+	}
+	c, err := model.Create(code)
 	if err != nil {
 		t.Errorf("failed to create new verification code: %s", err.Error())
 	}
