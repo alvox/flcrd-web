@@ -23,7 +23,6 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if existingUser != nil {
-		// log user already exists
 		app.duplicatedEmail(w)
 		return
 	}
@@ -48,14 +47,24 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 	}
 	user.Token.AccessToken = *accessToken
 	user.Password = ""
+	go app.sendConfirmation(user.ID, user.Email)
+	reply(w, http.StatusCreated, user)
+}
 
-	code := generateVerificationCode(user.ID)
+func (app *application) sendConfirmation(userID, email string) {
+	code := generateVerificationCode(userID)
 	c, err := app.verification.Create(code)
 	if err != nil {
-		app.serverError(w, err)
+		app.errorLog.Println(err.Error())
+		return
 	}
-	app.mailSender.SendConfirmation(user.Email, fmt.Sprintf("https://flashcards.rocks/activate/%s", c))
-	reply(w, http.StatusCreated, user)
+	link := fmt.Sprintf("https://flashcards.rocks/activate/%s", c)
+	result, err := app.mailSender.SendConfirmation(email, link)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+	app.infoLog.Println(result)
 }
 
 func (app *application) login(w http.ResponseWriter, r *http.Request) {
@@ -137,7 +146,7 @@ func (app *application) activate(w http.ResponseWriter, r *http.Request) {
 	c := mux.Vars(r)["code"]
 	code, err := app.verification.Get(c)
 	if err == models.ErrNoRecord {
-		app.deckNotFound(w)
+		app.verificationCodeInvalid(w)
 		return
 	}
 	if err != nil {
