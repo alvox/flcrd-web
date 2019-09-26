@@ -39,6 +39,15 @@ create table flcrd.user (
 );
 create unique index user_email_idx on flcrd.user(email);
 
+create table flcrd.verification_code(
+    user_id varchar(40) not null,
+    code varchar(40) not null,
+    code_exp timestamp not null,
+
+    primary key (user_id)
+);
+create unique index auth_code_idx on flcrd.verification_code(code);
+
 -- DATA --
 insert into flcrd.user (id, name, email, password, status, refresh_token, created, refresh_token_exp)
 values ('testuser_id_1', 'Testuser1', 'testuser1@example.com', '12345', 'ACTIVE', 'refreshtoken', '2019-01-01 09:00:00', '2019-02-02 10:00:00'),
@@ -56,3 +65,5 @@ values ('test_flashcard_id_1', 'test_deck_id_1', 'Test Front 1 1', 'Test Rear 1 
        ('test_flashcard_id_4', 'test_deck_id_2', 'Test Front 2 1', 'Test Rear 2 1', now()),
        ('test_flashcard_id_5', 'test_deck_id_2', 'Test Front 2 2', 'Test Rear 2 2', '2019-05-05 15:55:00');
 
+insert into flcrd.verification_code (user_id, code, code_exp)
+values ('testuser_id_2', 'code_for_user_2', '2019-01-01 09:00:00');

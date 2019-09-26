@@ -15,12 +15,6 @@ func TestUserModel_Create_Positive(t *testing.T) {
 	db, teardown := newTestDB(t)
 	defer teardown()
 	model := UserModel{db}
-	exp, e := time.Parse(
-		time.RFC3339,
-		"2019-12-01T22:08:41+00:00")
-	if e != nil {
-		t.Errorf("unexpected error while preparing test data: %s", e.Error())
-	}
 	u := &models.User{
 		Name:     "Test",
 		Email:    "test_email_1@example.com",
@@ -29,7 +23,7 @@ func TestUserModel_Create_Positive(t *testing.T) {
 		Token: models.Token{
 			AccessToken:     "authtoken",
 			RefreshToken:    "refreshtoken",
-			RefreshTokenExp: exp,
+			RefreshTokenExp: parseTime("2019-12-01T22:08:41+00:00", t),
 		},
 	}
 	_, err := model.Create(u)
@@ -140,17 +134,11 @@ func TestUserModel_UpdateRefreshToken(t *testing.T) {
 	db, teardown := newTestDB(t)
 	defer teardown()
 	model := UserModel{db}
-	exp, e := time.Parse(
-		time.RFC3339,
-		"2019-04-17T11:57:00+00:00")
-	if e != nil {
-		t.Errorf("unexpected error while preparing test data: %s", e.Error())
-	}
 	u := &models.User{
 		ID: "testuser_id_2",
 		Token: models.Token{
 			RefreshToken:    "newnew",
-			RefreshTokenExp: exp,
+			RefreshTokenExp: parseTime("2019-04-17T11:57:00+00:00", t),
 		},
 	}
 	err := model.UpdateRefreshToken(u)

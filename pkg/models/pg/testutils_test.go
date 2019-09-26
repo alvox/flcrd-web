@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"io/ioutil"
 	"testing"
+	"time"
 )
 
 func newTestDB(t *testing.T) (*sql.DB, func()) {
@@ -33,4 +34,12 @@ func newTestDB(t *testing.T) (*sql.DB, func()) {
 			t.Fatal(err)
 		}
 	}
+}
+
+func parseTime(s string, t *testing.T) time.Time {
+	tm, e := time.Parse(time.RFC3339, s)
+	if e != nil {
+		t.Errorf("unexpected error while preparing test data: %s", e.Error())
+	}
+	return tm
 }

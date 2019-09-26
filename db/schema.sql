@@ -39,6 +39,15 @@ create table flcrd.user (
 );
 create unique index user_email_idx on flcrd.user(email);
 
+create table flcrd.verification_code(
+    user_id varchar(40) not null,
+    code varchar(40) not null,
+    code_exp timestamp not null,
+
+    primary key (user_id)
+);
+create unique index auth_code_idx on flcrd.verification_code(code);
+
 --- TEST DB ---
 create user test with password 'pass';
 create database test_flcrd owner test;

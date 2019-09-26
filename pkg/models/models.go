@@ -10,6 +10,7 @@ import (
 var ErrNoRecord = errors.New("models: no matching record found")
 var ErrDeckNotFound = errors.New("models: deck does not exist")
 var ErrNonUniqueEmail = errors.New("models: user with this email already registered")
+var ErrNonUniqueCode = errors.New("models: verification code for user already exists")
 
 type Flashcard struct {
 	ID      string    `json:"id"`
@@ -96,4 +97,10 @@ func ParseTokens(r *http.Request) (*Token, bool) {
 		return nil, false
 	}
 	return &token, true
+}
+
+type VerificationCode struct {
+	UserID  string
+	Code    string
+	CodeExp time.Time
 }
