@@ -27,6 +27,7 @@ func (app *application) routes() http.Handler {
 	router.HandleFunc("/v0/users/register", app.registerUser).Methods("POST")
 	router.HandleFunc("/v0/users/login", app.login).Methods("POST")
 	router.HandleFunc("/v0/users/refresh", app.refreshToken).Methods("POST")
+	router.HandleFunc("/v0/users/activate/{code}", app.activate).Methods("POST")
 	// Public routes
 	router.HandleFunc("/v0/public/decks", app.getPublicDecks).Methods("GET")
 	router.HandleFunc("/v0/public/decks/{deckID}/flashcards", app.getPublicFlashcards).Methods("GET")

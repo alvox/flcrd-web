@@ -104,3 +104,7 @@ type VerificationCode struct {
 	Code    string
 	CodeExp time.Time
 }
+
+func (c VerificationCode) Expired() bool {
+	return time.Now().After(c.CodeExp)
+}

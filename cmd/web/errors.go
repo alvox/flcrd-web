@@ -87,6 +87,13 @@ func (app *application) flashcardNotFound(w http.ResponseWriter) {
 	})
 }
 
+func (app *application) verificationCodeInvalid(w http.ResponseWriter) {
+	handleError(app, w, http.StatusBadRequest, &ApiError{
+		Code:    "010",
+		Message: "verification code invalid or expired",
+	})
+}
+
 func handleError(app *application, w http.ResponseWriter, status int, e *ApiError) {
 	w.WriteHeader(status)
 	app.errorLog.Println(e.str())

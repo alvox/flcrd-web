@@ -3,6 +3,7 @@ package main
 import (
 	"alexanderpopov.me/flcrd/pkg/models"
 	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 )
 
@@ -130,4 +131,42 @@ func (app *application) refreshToken(w http.ResponseWriter, r *http.Request) {
 	}
 	token.AccessToken = *accessToken
 	reply(w, http.StatusOK, token)
+}
+
+func (app *application) activate(w http.ResponseWriter, r *http.Request) {
+	c := mux.Vars(r)["code"]
+	code, err := app.verification.Get(c)
+	if err == models.ErrNoRecord {
+		app.deckNotFound(w)
+		return
+	}
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	if code.Expired() {
+		app.verificationCodeInvalid(w)
+		return
+	}
+	u, err := app.users.Get(code.UserID)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	if u.Status != "PENDING" {
+		app.verificationCodeInvalid(w)
+		return
+	}
+	u.Status = "ACTIVE"
+	err = app.users.UpdateStatus(u)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	err = app.verification.Delete(*code)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	reply(w, http.StatusOK, nil)
 }
