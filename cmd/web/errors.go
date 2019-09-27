@@ -94,6 +94,13 @@ func (app *application) verificationCodeInvalid(w http.ResponseWriter) {
 	})
 }
 
+func (app *application) invalidUserStatus(w http.ResponseWriter) {
+	handleError(app, w, http.StatusBadRequest, &ApiError{
+		Code:    "011",
+		Message: "user status is not suitable for this operation",
+	})
+}
+
 func handleError(app *application, w http.ResponseWriter, status int, e *ApiError) {
 	w.WriteHeader(status)
 	app.errorLog.Println(e.str())

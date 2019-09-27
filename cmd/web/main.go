@@ -40,6 +40,7 @@ type application struct {
 	verification interface {
 		Create(code models.VerificationCode) (string, error)
 		Get(string) (*models.VerificationCode, error)
+		GetForUser(string) (*models.VerificationCode, error)
 		Delete(code models.VerificationCode) error
 	}
 	mailSender interface {

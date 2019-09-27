@@ -51,22 +51,6 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 	reply(w, http.StatusCreated, user)
 }
 
-func (app *application) sendConfirmation(userID, email string) {
-	code := generateVerificationCode(userID)
-	c, err := app.verification.Create(code)
-	if err != nil {
-		app.errorLog.Println(err.Error())
-		return
-	}
-	link := fmt.Sprintf("https://flashcards.rocks/activate/%s", c)
-	result, err := app.mailSender.SendConfirmation(email, link)
-	if err != nil {
-		app.errorLog.Println(err)
-		return
-	}
-	app.infoLog.Println(result)
-}
-
 func (app *application) login(w http.ResponseWriter, r *http.Request) {
 	user, valid := models.ParseUser(r)
 	if !valid {
@@ -178,4 +162,46 @@ func (app *application) activate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	reply(w, http.StatusOK, nil)
+}
+
+func (app *application) resendConfirmation(w http.ResponseWriter, r *http.Request) {
+	user, err := app.users.Get(r.Header.Get("UserID"))
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	if user.Status != "PENDING" {
+		app.invalidUserStatus(w)
+		return
+	}
+	code, err := app.verification.GetForUser(r.Header.Get("UserID"))
+	if err != nil && err != models.ErrNoRecord {
+		app.serverError(w, err)
+		return
+	}
+	if code != nil {
+		err = app.verification.Delete(*code)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+	}
+	go app.sendConfirmation(user.ID, user.Email)
+	reply(w, http.StatusOK, nil)
+}
+
+func (app *application) sendConfirmation(userID, email string) {
+	code := generateVerificationCode(userID)
+	c, err := app.verification.Create(code)
+	if err != nil {
+		app.errorLog.Println(err.Error())
+		return
+	}
+	link := fmt.Sprintf("https://flashcards.rocks/activate/%s", c)
+	result, err := app.mailSender.SendConfirmation(email, link)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+	app.infoLog.Println(result)
 }
