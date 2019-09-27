@@ -2,7 +2,6 @@ package main
 
 import (
 	"alexanderpopov.me/flcrd/pkg/models"
-	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -47,7 +46,7 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 	}
 	user.Token.AccessToken = *accessToken
 	user.Password = ""
-	go app.sendConfirmation(user.ID, user.Email)
+	go app.sendConfirmation(user.ID, user.Name, user.Email)
 	reply(w, http.StatusCreated, user)
 }
 
@@ -186,19 +185,18 @@ func (app *application) resendConfirmation(w http.ResponseWriter, r *http.Reques
 			return
 		}
 	}
-	go app.sendConfirmation(user.ID, user.Email)
+	go app.sendConfirmation(user.ID, user.Name, user.Email)
 	reply(w, http.StatusOK, nil)
 }
 
-func (app *application) sendConfirmation(userID, email string) {
+func (app *application) sendConfirmation(userID, userName, email string) {
 	code := generateVerificationCode(userID)
 	c, err := app.verification.Create(code)
 	if err != nil {
 		app.errorLog.Println(err.Error())
 		return
 	}
-	link := fmt.Sprintf("https://flashcards.rocks/activate/%s", c)
-	result, err := app.mailSender.SendConfirmation(email, link)
+	result, err := app.mailSender.SendConfirmation(email, userName, c)
 	if err != nil {
 		app.errorLog.Println(err)
 		return

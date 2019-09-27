@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -20,8 +19,8 @@ type SendMessageResponse struct {
 	Id      string `json:"id"`
 }
 
-func (s *MailSender) SendConfirmation(to, link string) (*SendMessageResponse, error) {
-	msg, contentType, err := composeMessage(to, link)
+func (s *MailSender) SendConfirmation(to, name, code string) (*SendMessageResponse, error) {
+	msg, contentType, err := composeMessage(to, name, code)
 	if err != nil {
 		return nil, err
 	}
@@ -46,17 +45,18 @@ func (s *MailSender) SendConfirmation(to, link string) (*SendMessageResponse, er
 	return r, nil
 }
 
-func composeMessage(to, link string) (*bytes.Buffer, string, error) {
+func composeMessage(to, name, code string) (*bytes.Buffer, string, error) {
 	data := &bytes.Buffer{}
 	writer := multipart.NewWriter(data)
-
-	v := map[string]string{
-		"from":    "alex@flashcards.rocks",
-		"to":      to,
-		"subject": "Confirm your email, please",
-		"text":    fmt.Sprintf("Thank you for joining!\nPlease, click this link to complete your registration: %s", link),
+	fields := map[string]string{
+		"from":                "alex@flashcards.rocks",
+		"to":                  to,
+		"subject":             "Confirm your email, please",
+		"template":            "verify_email",
+		"v:user_name":         name,
+		"v:verification_code": code,
 	}
-	for k, v := range v {
+	for k, v := range fields {
 		if tmp, err := writer.CreateFormField(k); err == nil {
 			_, err = tmp.Write([]byte(v))
 			if err != nil {

@@ -44,7 +44,7 @@ type application struct {
 		Delete(code models.VerificationCode) error
 	}
 	mailSender interface {
-		SendConfirmation(string, string) (*SendMessageResponse, error)
+		SendConfirmation(string, string, string) (*SendMessageResponse, error)
 	}
 	infoLog  *log.Logger
 	errorLog *log.Logger
