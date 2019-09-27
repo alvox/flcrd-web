@@ -39,6 +39,20 @@ func (m *VerificationModel) Get(code string) (*models.VerificationCode, error) {
 	return c, nil
 }
 
+func (m *VerificationModel) GetForUser(userID string) (*models.VerificationCode, error) {
+	stmt := `select user_id, code, code_exp from flcrd.verification_code where user_id = $1;`
+	c := &models.VerificationCode{}
+	err := m.DB.QueryRow(stmt, userID).Scan(&c.UserID, &c.Code, &c.CodeExp)
+	if err == sql.ErrNoRows {
+		return nil, models.ErrNoRecord
+	}
+	if err != nil {
+		return nil, err
+	}
+	c.CodeExp = c.CodeExp.UTC()
+	return c, nil
+}
+
 func (m *VerificationModel) Delete(code models.VerificationCode) error {
 	_, err := m.Get(code.Code)
 	if err != nil {

@@ -42,6 +42,25 @@ func TestVerificationModel_Get(t *testing.T) {
 	}
 }
 
+func TestVerificationModel_GetForUser(t *testing.T) {
+	if testing.Short() {
+		t.Skip("pg: skipping database test")
+	}
+	db, teardown := newTestDB(t)
+	defer teardown()
+	model := VerificationModel{db}
+	c, err := model.GetForUser("testuser_id_2")
+	if err != nil {
+		t.Errorf("failed to get verification code: %s", err.Error())
+	}
+	if c.UserID != "testuser_id_2" {
+		t.Errorf("invalid user id; want: %s, got: %s", "testuser_id_2", c.UserID)
+	}
+	if c.Code != "code_for_user_2" {
+		t.Errorf("invalid code: want: %s, got: %s", "code_for_uder_2", c.Code)
+	}
+}
+
 func TestVerificationModel_Delete(t *testing.T) {
 	if testing.Short() {
 		t.Skip("pg: skipping database test")
