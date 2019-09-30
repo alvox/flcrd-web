@@ -69,9 +69,9 @@ func (m *UserModel) UpdateRefreshToken(user *models.User) error {
 	return nil
 }
 
-func (m *UserModel) UpdateStatus(user *models.User) error {
-	stmt := `update flcrd.user set status = $1 where id = $2;`
-	_, err := m.DB.Exec(stmt, user.Status, user.ID)
+func (m *UserModel) Update(user *models.User) error {
+	stmt := `update flcrd.user set name = $1, email = $2, status = $3 where id = $4;`
+	_, err := m.DB.Exec(stmt, user.Name, user.Email, user.Status, user.ID)
 	if err != nil {
 		return err
 	}

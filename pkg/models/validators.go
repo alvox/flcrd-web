@@ -8,7 +8,7 @@ var r = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-z
 
 //todo: tests
 func (u User) Validate(validateName bool) *ValidationErrors {
-	errs := NewValidationErrors()
+	errs := u.ValidateEmail()
 
 	if validateName && u.Name == "" {
 		errs.Add("name", "field is required")
@@ -16,6 +16,30 @@ func (u User) Validate(validateName bool) *ValidationErrors {
 	if validateName && u.Name != "" && len(u.Name) > 50 {
 		errs.Add("name", "max length is 50 characters")
 	}
+	if u.Password == "" {
+		errs.Add("password", "field is required")
+	}
+	if u.Password != "" && len(u.Password) < 5 || len(u.Password) > 30 {
+		errs.Add("password", "min length is 5 characters, max length is 30 characters")
+	}
+	return errs
+}
+
+func (u User) ValidateForUpdate() *ValidationErrors {
+	errs := u.ValidateEmail()
+
+	if u.Name == "" {
+		errs.Add("name", "field is required")
+	}
+	if u.Name != "" && len(u.Name) > 50 {
+		errs.Add("name", "max length is 50 characters")
+	}
+	return errs
+}
+
+func (u User) ValidateEmail() *ValidationErrors {
+	errs := NewValidationErrors()
+
 	if u.Email == "" {
 		errs.Add("email", "field is required")
 	}
@@ -24,12 +48,6 @@ func (u User) Validate(validateName bool) *ValidationErrors {
 	}
 	if u.Email != "" && !r.MatchString(u.Email) {
 		errs.Add("email", "invalid email address")
-	}
-	if u.Password == "" {
-		errs.Add("password", "field is required")
-	}
-	if u.Password != "" && len(u.Password) < 5 || len(u.Password) > 30 {
-		errs.Add("password", "min length is 5 characters, max length is 30 characters")
 	}
 	return errs
 }

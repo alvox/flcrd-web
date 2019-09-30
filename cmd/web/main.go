@@ -35,7 +35,7 @@ type application struct {
 		Get(string) (*models.User, error)
 		GetByEmail(string) (*models.User, error)
 		UpdateRefreshToken(user *models.User) error
-		UpdateStatus(user *models.User) error
+		Update(user *models.User) error
 	}
 	verification interface {
 		Create(code models.VerificationCode) (string, error)

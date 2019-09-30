@@ -65,6 +65,44 @@ func (app *application) getUser(w http.ResponseWriter, r *http.Request) {
 	reply(w, http.StatusOK, user)
 }
 
+func (app *application) updateUser(w http.ResponseWriter, r *http.Request) {
+	user, valid := models.ParseUser(r)
+	if !valid {
+		app.badRequest(w)
+		return
+	}
+	if errs := user.ValidateForUpdate(); errs.Present() {
+		app.validationError(w, errs)
+		return
+	}
+	userID := r.Header.Get("UserID")
+	existingUser, err := app.users.Get(userID)
+	if err != nil {
+		if err == models.ErrNoRecord {
+			app.userNotFound(w)
+			return
+		}
+		app.serverError(w, err)
+		return
+	}
+	if existingUser.Email != user.Email {
+		err := app.deleteExistingCode(userID, w)
+		if err != nil {
+			return
+		}
+		app.sendConfirmation(userID, user.Name, user.Email)
+		existingUser.Status = "PENDING"
+	}
+	existingUser.Name = user.Name
+	existingUser.Email = user.Email
+	err = app.users.Update(existingUser)
+	if err != nil {
+		app.serverError(w, err)
+	}
+	existingUser.Password = ""
+	reply(w, http.StatusOK, existingUser)
+}
+
 func (app *application) login(w http.ResponseWriter, r *http.Request) {
 	user, valid := models.ParseUser(r)
 	if !valid {
@@ -165,7 +203,7 @@ func (app *application) activate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	u.Status = "ACTIVE"
-	err = app.users.UpdateStatus(u)
+	err = app.users.Update(u)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -179,7 +217,8 @@ func (app *application) activate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) resendConfirmation(w http.ResponseWriter, r *http.Request) {
-	user, err := app.users.Get(r.Header.Get("UserID"))
+	userID := r.Header.Get("UserID")
+	user, err := app.users.Get(userID)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -188,20 +227,28 @@ func (app *application) resendConfirmation(w http.ResponseWriter, r *http.Reques
 		app.invalidUserStatus(w)
 		return
 	}
-	code, err := app.verification.GetForUser(r.Header.Get("UserID"))
+	err = app.deleteExistingCode(userID, w)
+	if err != nil {
+		return
+	}
+	go app.sendConfirmation(user.ID, user.Name, user.Email)
+	reply(w, http.StatusOK, nil)
+}
+
+func (app *application) deleteExistingCode(userID string, w http.ResponseWriter) error {
+	code, err := app.verification.GetForUser(userID)
 	if err != nil && err != models.ErrNoRecord {
 		app.serverError(w, err)
-		return
+		return err
 	}
 	if code != nil {
 		err = app.verification.Delete(*code)
 		if err != nil {
 			app.serverError(w, err)
-			return
+			return err
 		}
 	}
-	go app.sendConfirmation(user.ID, user.Name, user.Email)
-	reply(w, http.StatusOK, nil)
+	return nil
 }
 
 func (app *application) sendConfirmation(userID, userName, email string) {

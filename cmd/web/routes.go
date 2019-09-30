@@ -26,6 +26,7 @@ func (app *application) routes() http.Handler {
 	// Users
 	router.HandleFunc("/v0/users/register", app.registerUser).Methods("POST")
 	router.Handle("/v0/users", auth.ThenFunc(app.getUser)).Methods("GET")
+	router.Handle("/v0/users", auth.ThenFunc(app.updateUser)).Methods("PUT")
 	router.HandleFunc("/v0/users/login", app.login).Methods("POST")
 	router.HandleFunc("/v0/users/refresh", app.refreshToken).Methods("POST")
 	router.HandleFunc("/v0/users/activate/{code}", app.activate).Methods("POST")

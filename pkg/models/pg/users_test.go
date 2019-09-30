@@ -166,9 +166,11 @@ func TestUserModel_UpdateStatus(t *testing.T) {
 	model := UserModel{db}
 	u := &models.User{
 		ID:     "testuser_id_2",
+		Name:   "updated name",
+		Email:  "updated@email.com",
 		Status: "ACTIVE",
 	}
-	err := model.UpdateStatus(u)
+	err := model.Update(u)
 	if err != nil {
 		t.Errorf("failed to update user status: %s", err.Error())
 	}
@@ -178,5 +180,11 @@ func TestUserModel_UpdateStatus(t *testing.T) {
 	}
 	if user.Status != "ACTIVE" {
 		t.Errorf("invalid user status: %s", user.Status)
+	}
+	if user.Name != "updated name" {
+		t.Errorf("invalid user name: %s", user.Name)
+	}
+	if user.Email != "updated@email.com" {
+		t.Errorf("invalid user email: %s", user.Email)
 	}
 }
