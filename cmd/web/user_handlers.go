@@ -50,6 +50,21 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 	reply(w, http.StatusCreated, user)
 }
 
+func (app *application) getUser(w http.ResponseWriter, r *http.Request) {
+	id := r.Header.Get("UserID")
+	user, err := app.users.Get(id)
+	if err != nil {
+		if err == models.ErrNoRecord {
+			app.userNotFound(w)
+			return
+		}
+		app.serverError(w, err)
+		return
+	}
+	user.Password = ""
+	reply(w, http.StatusOK, user)
+}
+
 func (app *application) login(w http.ResponseWriter, r *http.Request) {
 	user, valid := models.ParseUser(r)
 	if !valid {

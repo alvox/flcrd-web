@@ -101,6 +101,13 @@ func (app *application) invalidUserStatus(w http.ResponseWriter) {
 	})
 }
 
+func (app *application) userNotFound(w http.ResponseWriter) {
+	handleError(app, w, http.StatusBadRequest, &ApiError{
+		Code:    "012",
+		Message: "user not found",
+	})
+}
+
 func handleError(app *application, w http.ResponseWriter, status int, e *ApiError) {
 	w.WriteHeader(status)
 	app.errorLog.Println(e.str())
