@@ -40,3 +40,11 @@ jobs:
         docker login docker.pkg.github.com --username alvox --password $PKG_TOKEN
         docker push docker.pkg.github.com/alvox/flcrd-web/flcrd-api:latest
     
+    - name: Notify
+      uses: appleboy/telegram-action@master
+      env:
+        TELEGRAM_TOKEN: ${{ secrets.telegram_bot_token }}
+        TELEGRAM_TO: ${{ secrets.telegram_id }}
+      with:
+        args: FLCRD API - build finished with ${{ job.status }} status.
+    
