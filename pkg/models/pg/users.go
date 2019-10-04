@@ -77,3 +77,13 @@ func (m *UserModel) Update(user *models.User) error {
 	}
 	return nil
 }
+
+func (m *UserModel) Delete(id string) error {
+	_, err := m.Get(id)
+	if err != nil {
+		return err
+	}
+	stmt := `delete from flcrd.user where id = $1;`
+	_, err = m.DB.Exec(stmt, id)
+	return err
+}

@@ -188,3 +188,27 @@ func TestUserModel_UpdateStatus(t *testing.T) {
 		t.Errorf("invalid user email: %s", user.Email)
 	}
 }
+
+func TestUserModel_Delete(t *testing.T) {
+	if testing.Short() {
+		t.Skip("pg: skipping database test")
+	}
+	db, teardown := newTestDB(t)
+	defer teardown()
+	model := UserModel{db}
+	user, err := model.Get("testuser_id_1")
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
+	}
+	if user == nil {
+		t.Errorf("can't find test user testuser_id_1")
+	}
+	err = model.Delete("testuser_id_1")
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
+	}
+	_, err = model.Get("testuder_id_1")
+	if err != models.ErrNoRecord {
+		t.Errorf("user haven't been deleted; want: %s, got: %s", models.ErrNoRecord, err)
+	}
+}
