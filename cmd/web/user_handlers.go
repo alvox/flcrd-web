@@ -265,3 +265,27 @@ func (app *application) sendConfirmation(userID, userName, email string) {
 	}
 	app.infoLog.Println(result)
 }
+
+func (app *application) deleteUser(w http.ResponseWriter, r *http.Request) {
+	userID := r.Header.Get("UserID")
+	user, err := app.users.Get(userID)
+	if err != nil {
+		if err == models.ErrNoRecord {
+			app.userNotFound(w)
+			return
+		}
+		app.serverError(w, err)
+		return
+	}
+	err = app.decks.DeleteForUser(user.ID)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	err = app.users.Delete(user.ID)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	reply(w, http.StatusOK, nil)
+}

@@ -20,6 +20,7 @@ type application struct {
 		GetPublic() ([]*models.Deck, error)
 		Update(*models.Deck) error
 		Delete(string) error
+		DeleteForUser(string) error
 		Search([]string) ([]*models.Deck, error)
 	}
 	flashcards interface {
@@ -36,6 +37,7 @@ type application struct {
 		GetByEmail(string) (*models.User, error)
 		UpdateRefreshToken(user *models.User) error
 		Update(user *models.User) error
+		Delete(string) error
 	}
 	verification interface {
 		Create(code models.VerificationCode) (string, error)
