@@ -1,0 +1,17 @@
+name: Deploy
+
+on:
+  deployment:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Run deploy-api script
+      uses: digitalocean/action-doctl@master
+      env:
+        DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.do_token }}
+      with:
+        args: compute ssh flcrd-01 --ssh-command 'su flcrd && cd /home/flcrd && sh deploy-api.sh'
+   
