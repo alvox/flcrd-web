@@ -62,8 +62,11 @@ func (m *UserModel) GetByEmail(email string) (*models.User, error) {
 
 func (m *UserModel) UpdateRefreshToken(user *models.User) error {
 	stmt := `update flcrd.user set refresh_token = $1, refresh_token_exp = $2 where id = $3;`
-	_, err := m.DB.Exec(stmt, user.Token.RefreshToken, user.Token.RefreshTokenExp, user.ID)
+	r, err := m.DB.Exec(stmt, user.Token.RefreshToken, user.Token.RefreshTokenExp, user.ID)
 	if err != nil {
+		return err
+	}
+	if err := rowsCnt(r); err != nil {
 		return err
 	}
 	return nil
@@ -71,8 +74,11 @@ func (m *UserModel) UpdateRefreshToken(user *models.User) error {
 
 func (m *UserModel) Update(user *models.User) error {
 	stmt := `update flcrd.user set name = $1, email = $2, status = $3 where id = $4;`
-	_, err := m.DB.Exec(stmt, user.Name, user.Email, user.Status, user.ID)
+	r, err := m.DB.Exec(stmt, user.Name, user.Email, user.Status, user.ID)
 	if err != nil {
+		return err
+	}
+	if err := rowsCnt(r); err != nil {
 		return err
 	}
 	return nil
@@ -98,15 +104,4 @@ func (m *UserModel) Delete(userID string) error {
 		return err
 	}
 	return tx.Commit()
-}
-
-func rowsCnt(r sql.Result) error {
-	count, err := r.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if count == 0 {
-		return models.ErrNoRecord
-	}
-	return nil
 }

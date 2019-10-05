@@ -54,11 +54,13 @@ func (m *VerificationModel) GetForUser(userID string) (*models.VerificationCode,
 }
 
 func (m *VerificationModel) Delete(code models.VerificationCode) error {
-	_, err := m.Get(code.Code)
+	stmt := `delete from flcrd.verification_code where user_id = $1;`
+	r, err := m.DB.Exec(stmt, code.UserID)
 	if err != nil {
 		return err
 	}
-	stmt := `delete from flcrd.verification_code where user_id = $1;`
-	_, err = m.DB.Exec(stmt, code.UserID)
-	return err
+	if err := rowsCnt(r); err != nil {
+		return err
+	}
+	return nil
 }

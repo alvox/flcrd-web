@@ -23,15 +23,17 @@ func (m *DeckModel) Create(name, description, createdBy string, public bool) (*s
 }
 
 func (m *DeckModel) Update(deck *models.Deck) error {
-	_, err := m.Get(deck.ID)
-	if err != nil {
-		return err
-	}
 	stmt := `update flcrd.deck set name = $1, description = $2, public = $3, 
                  search_tokens = to_tsvector($4) 
              where id = $5;`
-	_, err = m.DB.Exec(stmt, deck.Name, deck.Description, deck.Public, fmt.Sprint(deck.Name, " ", deck.Description), deck.ID)
-	return err
+	r, err := m.DB.Exec(stmt, deck.Name, deck.Description, deck.Public, fmt.Sprint(deck.Name, " ", deck.Description), deck.ID)
+	if err != nil {
+		return err
+	}
+	if err := rowsCnt(r); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *DeckModel) Get(id string) (*models.Deck, error) {
@@ -83,13 +85,15 @@ func (m *DeckModel) GetForUser(userID string) ([]*models.Deck, error) {
 }
 
 func (m *DeckModel) Delete(id string) error {
-	_, err := m.Get(id)
+	stmt := `delete from flcrd.deck where id = $1;`
+	r, err := m.DB.Exec(stmt, id)
 	if err != nil {
 		return err
 	}
-	stmt := `delete from flcrd.deck where id = $1;`
-	_, err = m.DB.Exec(stmt, id)
-	return err
+	if err := rowsCnt(r); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *DeckModel) Search(terms []string) ([]*models.Deck, error) {

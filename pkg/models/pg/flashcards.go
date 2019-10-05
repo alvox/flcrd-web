@@ -99,22 +99,20 @@ func (m *FlashcardModel) Update(flashcard *models.Flashcard) error {
 		}
 		return err
 	}
-	i, err := r.RowsAffected()
-	if err != nil {
+	if err := rowsCnt(r); err != nil {
 		return err
-	}
-	if i == 0 {
-		return models.ErrNoRecord
 	}
 	return nil
 }
 
 func (m *FlashcardModel) Delete(deckID, flashcardID string) error {
-	_, err := m.Get(deckID, flashcardID)
+	stmt := `delete from flcrd.flashcard where id = $1 and deck_id = $2;`
+	r, err := m.DB.Exec(stmt, flashcardID, deckID)
 	if err != nil {
 		return err
 	}
-	stmt := `delete from flcrd.flashcard where id = $1 and deck_id = $2;`
-	_, err = m.DB.Exec(stmt, flashcardID, deckID)
-	return err
+	if err := rowsCnt(r); err != nil {
+		return err
+	}
+	return nil
 }
