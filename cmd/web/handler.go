@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 )
 
 func reply(w http.ResponseWriter, status int, obj interface{}) {
@@ -23,4 +24,16 @@ func writeJsonResponse(w http.ResponseWriter, obj interface{}) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+func extractSearchTerms(r *http.Request) []string {
+	query := r.URL.Query()
+	if len(query) == 0 {
+		return nil
+	}
+	q := query.Get("q")
+	if len(q) == 0 {
+		return nil
+	}
+	return strings.Split(q, ",")
 }

@@ -4,7 +4,6 @@ import (
 	"alexanderpopov.me/flcrd/pkg/models"
 	"github.com/gorilla/mux"
 	"net/http"
-	"strings"
 )
 
 func (app *application) createDeck(w http.ResponseWriter, r *http.Request) {
@@ -44,18 +43,6 @@ func (app *application) getPublicDecks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	reply(w, http.StatusOK, decks)
-}
-
-func extractSearchTerms(r *http.Request) []string {
-	query := r.URL.Query()
-	if len(query) == 0 {
-		return nil
-	}
-	q := query.Get("q")
-	if len(q) == 0 {
-		return nil
-	}
-	return strings.Split(q, ",")
 }
 
 func (app *application) getDecksForUser(w http.ResponseWriter, r *http.Request) {
