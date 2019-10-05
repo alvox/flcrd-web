@@ -52,7 +52,7 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) getUser(w http.ResponseWriter, r *http.Request) {
 	id := r.Header.Get("UserID")
-	user, err := app.users.Get(id)
+	user, err := app.users.GetProfile(id)
 	if modelError(app, err, w, "user") {
 		return
 	}

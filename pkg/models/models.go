@@ -41,12 +41,18 @@ type User struct {
 	Status   string    `json:"status"`
 	Created  time.Time `json:"created"`
 	Token    Token     `json:"token,omitempty"`
+	Stats    Stats     `json:"stats,omitempty"`
 }
 
 type Token struct {
 	AccessToken     string    `json:"access_token,omitempty"`
 	RefreshToken    string    `json:"refresh_token,omitempty"`
-	RefreshTokenExp time.Time `json:"refresh_token_exp"`
+	RefreshTokenExp time.Time `json:"refresh_token_exp,omitempty"`
+}
+
+type Stats struct {
+	DecksCount int `json:"decks_count"`
+	CardsCount int `json:"cards_count"`
 }
 
 type VerificationCode struct {

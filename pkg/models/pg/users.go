@@ -30,34 +30,55 @@ func (m *UserModel) Create(user *models.User) (*string, error) {
 func (m *UserModel) Get(userID string) (*models.User, error) {
 	stmt := `select id, name, email, password, status, created, refresh_token, refresh_token_exp 
              from flcrd.user where id = $1;`
-	d := &models.User{}
-	err := m.DB.QueryRow(stmt, userID).Scan(&d.ID, &d.Name, &d.Email, &d.Password, &d.Status, &d.Created,
-		&d.Token.RefreshToken, &d.Token.RefreshTokenExp)
+	u := &models.User{}
+	err := m.DB.QueryRow(stmt, userID).Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.Status, &u.Created,
+		&u.Token.RefreshToken, &u.Token.RefreshTokenExp)
 	if err == sql.ErrNoRows {
 		return nil, models.ErrNoRecord
 	}
 	if err != nil {
 		return nil, err
 	}
-	d.Created = d.Created.UTC()
-	d.Token.RefreshTokenExp = d.Token.RefreshTokenExp.UTC()
-	return d, nil
+	u.Created = u.Created.UTC()
+	u.Token.RefreshTokenExp = u.Token.RefreshTokenExp.UTC()
+	return u, nil
+}
+
+func (m *UserModel) GetProfile(userID string) (*models.User, error) {
+	stmt := `
+    select u.id, u.name, u.email, u.status,
+        count(d.id) as decks_count,
+        (select count(id) from flcrd.flashcard where deck_id in
+             (select id from flcrd.deck where created_by = u.id)) as cards_count
+    from flcrd.user u
+    left join flcrd.deck d on d.created_by = u.id
+    where u.id = $1 group by u.id;`
+	u := &models.User{}
+	err := m.DB.QueryRow(stmt, userID).Scan(&u.ID, &u.Name, &u.Email, &u.Status, &u.Stats.DecksCount, &u.Stats.CardsCount)
+	if err == sql.ErrNoRows {
+		return nil, models.ErrNoRecord
+	}
+	if err != nil {
+		return nil, err
+	}
+	u.Created = u.Created.UTC()
+	return u, nil
 }
 
 func (m *UserModel) GetByEmail(email string) (*models.User, error) {
 	stmt := `select id, name, email, password, status, created, refresh_token, refresh_token_exp 
              from flcrd.user where email = $1;`
-	d := &models.User{}
-	err := m.DB.QueryRow(stmt, email).Scan(&d.ID, &d.Name, &d.Email, &d.Password, &d.Status, &d.Created,
-		&d.Token.RefreshToken, &d.Token.RefreshTokenExp)
+	u := &models.User{}
+	err := m.DB.QueryRow(stmt, email).Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.Status, &u.Created,
+		&u.Token.RefreshToken, &u.Token.RefreshTokenExp)
 	if err == sql.ErrNoRows {
 		return nil, models.ErrNoRecord
 	}
 	if err != nil {
 		return nil, err
 	}
-	d.Created = d.Created.UTC()
-	return d, nil
+	u.Created = u.Created.UTC()
+	return u, nil
 }
 
 func (m *UserModel) UpdateRefreshToken(user *models.User) error {
