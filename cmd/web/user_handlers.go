@@ -7,8 +7,8 @@ import (
 )
 
 func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
-	user, valid := models.ParseUser(r)
-	if !valid {
+	user := models.ParseUser(r)
+	if user == nil {
 		app.badRequest(w)
 		return
 	}
@@ -61,8 +61,8 @@ func (app *application) getUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) updateUser(w http.ResponseWriter, r *http.Request) {
-	user, valid := models.ParseUser(r)
-	if !valid {
+	user := models.ParseUser(r)
+	if user == nil {
 		app.badRequest(w)
 		return
 	}
@@ -94,8 +94,8 @@ func (app *application) updateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) login(w http.ResponseWriter, r *http.Request) {
-	user, valid := models.ParseUser(r)
-	if !valid {
+	user := models.ParseUser(r)
+	if user == nil {
 		app.badRequest(w)
 		return
 	}
@@ -133,8 +133,8 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) refreshToken(w http.ResponseWriter, r *http.Request) {
-	token, valid := models.ParseTokens(r)
-	if !valid {
+	token := models.ParseTokens(r)
+	if token == nil {
 		app.badRequest(w)
 		return
 	}

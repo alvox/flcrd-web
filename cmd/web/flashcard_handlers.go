@@ -7,8 +7,8 @@ import (
 )
 
 func (app *application) createFlashcard(w http.ResponseWriter, r *http.Request) {
-	flashcard, valid := models.ParseFlashcard(r)
-	if !valid {
+	flashcard := models.ParseFlashcard(r)
+	if flashcard == nil {
 		app.badRequest(w)
 		return
 	}
@@ -72,8 +72,8 @@ func (app *application) getFlashcardsForUser(w http.ResponseWriter, r *http.Requ
 }
 
 func (app *application) updateFlashcard(w http.ResponseWriter, r *http.Request) {
-	flashcard, valid := models.ParseFlashcard(r)
-	if !valid {
+	flashcard := models.ParseFlashcard(r)
+	if flashcard == nil {
 		app.badRequest(w)
 		return
 	}
