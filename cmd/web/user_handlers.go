@@ -258,12 +258,7 @@ func (app *application) sendConfirmation(userID, userName, email string) {
 
 func (app *application) deleteUser(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("UserID")
-	err := app.decks.DeleteForUser(userID)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-	err = app.users.Delete(userID)
+	err := app.users.Delete(userID)
 	if err != nil {
 		app.serverError(w, err)
 		return

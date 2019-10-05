@@ -13,7 +13,7 @@ services:
       POSTGRES_USER: flcrd
       POSTGRES_PASSWORD: flcrd
     volumes:
-      - /tmp/flcrd-db:/var/lib/postgresql/data
+      - ~/tmp/flcrd-db:/var/lib/postgresql/data
     ports:
       - 5432:5432
     networks:

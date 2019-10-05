@@ -20,7 +20,6 @@ type application struct {
 		GetPublic() ([]*models.Deck, error)
 		Update(*models.Deck) error
 		Delete(string) error
-		DeleteForUser(string) error
 		Search([]string) ([]*models.Deck, error)
 	}
 	flashcards interface {

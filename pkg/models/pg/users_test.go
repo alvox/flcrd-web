@@ -207,8 +207,16 @@ func TestUserModel_Delete(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
-	_, err = model.Get("testuder_id_1")
+	_, err = model.Get("testuser_id_1")
 	if err != models.ErrNoRecord {
 		t.Errorf("user haven't been deleted; want: %s, got: %s", models.ErrNoRecord, err)
+	}
+	deckModel := DeckModel{db}
+	decks, err := deckModel.GetForUser("testuser_id_1")
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
+	}
+	if len(decks) != 0 {
+		t.Errorf("decks count invalid; want: 0, got: %d", len(decks))
 	}
 }

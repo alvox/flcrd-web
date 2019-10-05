@@ -248,26 +248,6 @@ func TestDeckModel_Delete_NonExistent(t *testing.T) {
 	}
 }
 
-func TestDeckModel_DeleteForUser(t *testing.T) {
-	if testing.Short() {
-		t.Skip("pg: skipping database test")
-	}
-	db, teardown := newTestDB(t)
-	defer teardown()
-	model := DeckModel{db}
-	err := model.DeleteForUser("testuser_id_1")
-	if err != nil {
-		t.Errorf("unexpected error: %s", err.Error())
-	}
-	decks, err := model.GetForUser("testuser_id_1")
-	if err != nil {
-		t.Errorf("unexpected error: %s", err.Error())
-	}
-	if len(decks) != 0 {
-		t.Errorf("decks count invalid; want: 0, got: %d", len(decks))
-	}
-}
-
 func TestDeckModel_Search(t *testing.T) {
 	if testing.Short() {
 		t.Skip("pg: skipping database test")

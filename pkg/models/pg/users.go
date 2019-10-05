@@ -78,12 +78,35 @@ func (m *UserModel) Update(user *models.User) error {
 	return nil
 }
 
-func (m *UserModel) Delete(id string) error {
-	_, err := m.Get(id)
+func (m *UserModel) Delete(userID string) error {
+	tx, err := m.DB.Begin()
 	if err != nil {
 		return err
 	}
-	stmt := `delete from flcrd.user where id = $1;`
-	_, err = m.DB.Exec(stmt, id)
-	return err
+	r, err := tx.Exec(`delete from flcrd.user where id = $1;`, userID)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if err := rowsCnt(r); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	_, err = tx.Exec(`delete from flcrd.deck where created_by = $1;`, userID)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	return tx.Commit()
+}
+
+func rowsCnt(r sql.Result) error {
+	count, err := r.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		return models.ErrNoRecord
+	}
+	return nil
 }

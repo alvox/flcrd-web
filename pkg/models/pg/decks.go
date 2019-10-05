@@ -92,12 +92,6 @@ func (m *DeckModel) Delete(id string) error {
 	return err
 }
 
-func (m *DeckModel) DeleteForUser(userID string) error {
-	stmt := `delete from flcrd.deck where created_by = $1;`
-	_, err := m.DB.Exec(stmt, userID)
-	return err
-}
-
 func (m *DeckModel) Search(terms []string) ([]*models.Deck, error) {
 	t := strings.Join(terms[:], "<->")
 	stmt := `select d.id, d.name, d.description, d.created, d.public,
