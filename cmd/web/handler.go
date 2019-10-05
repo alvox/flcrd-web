@@ -1,6 +1,7 @@
 package main
 
 import (
+	"alexanderpopov.me/flcrd/pkg/models"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -36,4 +37,16 @@ func extractSearchTerms(r *http.Request) []string {
 		return nil
 	}
 	return strings.Split(q, ",")
+}
+
+func modelError(app *application, err error, w http.ResponseWriter, model string) bool {
+	if err == models.ErrNoRecord {
+		app.notFound(w, model)
+		return true
+	}
+	if err != nil {
+		app.serverError(w, err)
+		return true
+	}
+	return false
 }

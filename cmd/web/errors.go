@@ -73,38 +73,24 @@ func (app *application) duplicatedEmail(w http.ResponseWriter) {
 	})
 }
 
-func (app *application) deckNotFound(w http.ResponseWriter) {
+func (app *application) notFound(w http.ResponseWriter, model string) {
 	handleError(app, w, http.StatusNotFound, &ApiError{
 		Code:    "008",
-		Message: "deck not found",
-	})
-}
-
-func (app *application) flashcardNotFound(w http.ResponseWriter) {
-	handleError(app, w, http.StatusNotFound, &ApiError{
-		Code:    "009",
-		Message: "flashcard not found",
+		Message: fmt.Sprintf("%s not found", model),
 	})
 }
 
 func (app *application) verificationCodeInvalid(w http.ResponseWriter) {
 	handleError(app, w, http.StatusBadRequest, &ApiError{
-		Code:    "010",
+		Code:    "009",
 		Message: "verification code invalid or expired",
 	})
 }
 
 func (app *application) invalidUserStatus(w http.ResponseWriter) {
 	handleError(app, w, http.StatusBadRequest, &ApiError{
-		Code:    "011",
+		Code:    "010",
 		Message: "user status is not suitable for this operation",
-	})
-}
-
-func (app *application) userNotFound(w http.ResponseWriter) {
-	handleError(app, w, http.StatusBadRequest, &ApiError{
-		Code:    "012",
-		Message: "user not found",
 	})
 }
 

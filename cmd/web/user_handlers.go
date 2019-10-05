@@ -53,12 +53,7 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 func (app *application) getUser(w http.ResponseWriter, r *http.Request) {
 	id := r.Header.Get("UserID")
 	user, err := app.users.Get(id)
-	if err != nil {
-		if err == models.ErrNoRecord {
-			app.userNotFound(w)
-			return
-		}
-		app.serverError(w, err)
+	if modelError(app, err, w, "user") {
 		return
 	}
 	user.Password = ""
@@ -77,12 +72,7 @@ func (app *application) updateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	userID := r.Header.Get("UserID")
 	existingUser, err := app.users.Get(userID)
-	if err != nil {
-		if err == models.ErrNoRecord {
-			app.userNotFound(w)
-			return
-		}
-		app.serverError(w, err)
+	if modelError(app, err, w, "user") {
 		return
 	}
 	if existingUser.Email != user.Email {
@@ -268,21 +258,12 @@ func (app *application) sendConfirmation(userID, userName, email string) {
 
 func (app *application) deleteUser(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("UserID")
-	user, err := app.users.Get(userID)
-	if err != nil {
-		if err == models.ErrNoRecord {
-			app.userNotFound(w)
-			return
-		}
-		app.serverError(w, err)
-		return
-	}
-	err = app.decks.DeleteForUser(user.ID)
+	err := app.decks.DeleteForUser(userID)
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
-	err = app.users.Delete(user.ID)
+	err = app.users.Delete(userID)
 	if err != nil {
 		app.serverError(w, err)
 		return

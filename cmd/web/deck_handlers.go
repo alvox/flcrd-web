@@ -57,12 +57,7 @@ func (app *application) getDecksForUser(w http.ResponseWriter, r *http.Request) 
 func (app *application) getDeck(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["deckID"]
 	deck, err := app.decks.Get(id)
-	if err == models.ErrNoRecord {
-		app.deckNotFound(w)
-		return
-	}
-	if err != nil {
-		app.serverError(w, err)
+	if modelError(app, err, w, "deck") {
 		return
 	}
 	reply(w, http.StatusOK, deck)
@@ -80,12 +75,7 @@ func (app *application) updateDeck(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err := app.decks.Update(deck)
-	if err != nil {
-		if err == models.ErrNoRecord {
-			app.deckNotFound(w)
-			return
-		}
-		app.serverError(w, err)
+	if modelError(app, err, w, "deck") {
 		return
 	}
 	deck, err = app.decks.Get(deck.ID)
@@ -98,14 +88,8 @@ func (app *application) updateDeck(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) deleteDeck(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["deckID"]
-	_, err := app.decks.Get(id)
-	if err == models.ErrNoRecord {
-		app.deckNotFound(w)
-		return
-	}
-	err = app.decks.Delete(id)
-	if err != nil {
-		app.serverError(w, err)
+	err := app.decks.Delete(id)
+	if modelError(app, err, w, "deck") {
 		return
 	}
 	reply(w, http.StatusNoContent, nil)

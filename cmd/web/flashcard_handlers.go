@@ -18,12 +18,7 @@ func (app *application) createFlashcard(w http.ResponseWriter, r *http.Request) 
 	}
 	deckID := mux.Vars(r)["deckID"]
 	_, err := app.decks.Get(deckID)
-	if err == models.ErrNoRecord {
-		app.deckNotFound(w)
-		return
-	}
-	if err != nil {
-		app.serverError(w, err)
+	if modelError(app, err, w, "deck") {
 		return
 	}
 	flashcard.DeckID = deckID
@@ -44,12 +39,7 @@ func (app *application) getFlashcard(w http.ResponseWriter, r *http.Request) {
 	deckID := mux.Vars(r)["deckID"]
 	flashcardID := mux.Vars(r)["flashcardID"]
 	flashcard, err := app.flashcards.Get(deckID, flashcardID)
-	if err == models.ErrNoRecord {
-		app.flashcardNotFound(w)
-		return
-	}
-	if err != nil {
-		app.serverError(w, err)
+	if modelError(app, err, w, "flashcard") {
 		return
 	}
 	reply(w, http.StatusOK, flashcard)
@@ -58,12 +48,7 @@ func (app *application) getFlashcard(w http.ResponseWriter, r *http.Request) {
 func (app *application) getPublicFlashcards(w http.ResponseWriter, r *http.Request) {
 	deckID := mux.Vars(r)["deckID"]
 	_, err := app.decks.Get(deckID)
-	if err == models.ErrNoRecord {
-		app.deckNotFound(w)
-		return
-	}
-	if err != nil {
-		app.serverError(w, err)
+	if modelError(app, err, w, "deck") {
 		return
 	}
 	flashcards, err := app.flashcards.GetPublic(deckID)
@@ -76,12 +61,7 @@ func (app *application) getPublicFlashcards(w http.ResponseWriter, r *http.Reque
 func (app *application) getFlashcardsForUser(w http.ResponseWriter, r *http.Request) {
 	deckID := mux.Vars(r)["deckID"]
 	_, err := app.decks.Get(deckID)
-	if err == models.ErrNoRecord {
-		app.deckNotFound(w)
-		return
-	}
-	if err != nil {
-		app.serverError(w, err)
+	if modelError(app, err, w, "deck") {
 		return
 	}
 	flashcards, err := app.flashcards.GetForUser(deckID, r.Header.Get("UserID"))
@@ -103,12 +83,7 @@ func (app *application) updateFlashcard(w http.ResponseWriter, r *http.Request) 
 	}
 	deckID := mux.Vars(r)["deckID"]
 	_, err := app.decks.Get(deckID)
-	if err == models.ErrNoRecord {
-		app.deckNotFound(w)
-		return
-	}
-	if err != nil {
-		app.serverError(w, err)
+	if modelError(app, err, w, "deck") {
 		return
 	}
 	flashcardID := mux.Vars(r)["flashcardID"]
@@ -129,12 +104,7 @@ func (app *application) updateFlashcard(w http.ResponseWriter, r *http.Request) 
 func (app *application) deleteFlashcard(w http.ResponseWriter, r *http.Request) {
 	deckID := mux.Vars(r)["deckID"]
 	_, err := app.decks.Get(deckID)
-	if err == models.ErrNoRecord {
-		app.deckNotFound(w)
-		return
-	}
-	if err != nil {
-		app.serverError(w, err)
+	if modelError(app, err, w, "deck") {
 		return
 	}
 	flashcardID := mux.Vars(r)["flashcardID"]
