@@ -34,6 +34,11 @@ func (m *DeckModel) Update(deck *models.Deck) error {
              where id = $5;`
 	r, err := m.DB.Exec(stmt, deck.Name, deck.Description, deck.Public, fmt.Sprint(deck.Name, " ", deck.Description), deck.ID)
 	if err != nil {
+		if err, ok := err.(*pq.Error); ok {
+			if "unique_violation" == err.Code.Name() {
+				return models.ErrUniqueViolation
+			}
+		}
 		return err
 	}
 	if err := rowsCnt(r); err != nil {

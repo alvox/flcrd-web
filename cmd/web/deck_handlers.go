@@ -79,6 +79,10 @@ func (app *application) updateDeck(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err := app.decks.Update(deck)
+	if err == models.ErrUniqueViolation {
+		app.deckNameNotUnique(w)
+		return
+	}
 	if modelError(app, err, w, "deck") {
 		return
 	}
