@@ -34,6 +34,15 @@ func (m *UserModel) Get(userID string) (*models.User, error) {
 	}
 }
 
+func (m *UserModel) GetProfile(userID string) (*models.User, error) {
+	switch userID {
+	case "test_user_id":
+		return mockUser, nil
+	default:
+		return nil, models.ErrNoRecord
+	}
+}
+
 func (m *UserModel) GetByEmail(email string) (*models.User, error) {
 	switch email {
 	case "test_user_email@example.com":
@@ -50,6 +59,14 @@ func (m *UserModel) UpdateRefreshToken(user *models.User) error {
 	default:
 		return models.ErrNoRecord
 	}
+}
+
+func (m *UserModel) Update(user *models.User) error {
+	return nil
+}
+
+func (m *UserModel) Delete(userID string) error {
+	return nil
 }
 
 func hashPassword(pwd string) string {

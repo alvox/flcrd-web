@@ -15,11 +15,13 @@ import (
 
 func newTestApp(t *testing.T) *application {
 	return &application{
-		decks:      &mock.DeckModel{},
-		flashcards: &mock.FlashcardModel{},
-		users:      &mock.UserModel{},
-		infoLog:    log.New(ioutil.Discard, "", 0),
-		errorLog:   log.New(ioutil.Discard, "", 0),
+		decks:        &mock.DeckModel{},
+		flashcards:   &mock.FlashcardModel{},
+		users:        &mock.UserModel{},
+		verification: &mock.VerificationModel{},
+		mailSender:   &MockMailSender{},
+		infoLog:      log.New(ioutil.Discard, "", 0),
+		errorLog:     log.New(ioutil.Discard, "", 0),
 	}
 }
 
@@ -81,4 +83,13 @@ func parseDecks(resp string) (*[]models.Deck, bool) {
 		return nil, false
 	}
 	return &decks, true
+}
+
+type MockMailSender struct{}
+
+func (s *MockMailSender) SendConfirmation(to, name, code string) (*SendMessageResponse, error) {
+	return &SendMessageResponse{
+		Message: "OK",
+		Id:      "TEST_MAIL_ID",
+	}, nil
 }
