@@ -1,6 +1,8 @@
 ## Backend for the [flashcards.rocks](https://flashcards.rocks) site.
 
-🌎 https://flashcards.rocks  ![](https://github.com/alvox/flcrd-web/workflows/Build%20image/badge.svg)
+🌎 https://flashcards.rocks
+
+![](https://github.com/alvox/flcrd-web/workflows/Build%20image/badge.svg)
 
 ### Build app
 `./build.sh`
