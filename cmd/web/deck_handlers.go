@@ -17,6 +17,10 @@ func (app *application) createDeck(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id, err := app.decks.Create(deck.Name, deck.Description, r.Header.Get("UserID"), deck.Public)
+	if err == models.ErrUniqueViolation {
+		app.deckNameNotUnique(w)
+		return
+	}
 	if err != nil {
 		app.serverError(w, err)
 		return

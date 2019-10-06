@@ -4,6 +4,7 @@ import (
 	"alexanderpopov.me/flcrd/pkg/models"
 	"database/sql"
 	"fmt"
+	"github.com/lib/pq"
 	"strings"
 )
 
@@ -17,6 +18,11 @@ func (m *DeckModel) Create(name, description, createdBy string, public bool) (*s
 	var id string
 	err := m.DB.QueryRow(stmt, name, description, createdBy, public, fmt.Sprint(name, " ", description)).Scan(&id)
 	if err != nil {
+		if err, ok := err.(*pq.Error); ok {
+			if "unique_violation" == err.Code.Name() {
+				return nil, models.ErrUniqueViolation
+			}
+		}
 		return nil, err
 	}
 	return &id, nil

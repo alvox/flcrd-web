@@ -17,7 +17,7 @@ func (m *VerificationModel) Create(code models.VerificationCode) (string, error)
 	if err != nil {
 		if err, ok := err.(*pq.Error); ok {
 			if "unique_violation" == err.Code.Name() {
-				return "", models.ErrNonUniqueCode
+				return "", models.ErrUniqueViolation
 			}
 		}
 		return "", err

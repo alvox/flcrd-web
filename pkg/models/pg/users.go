@@ -19,7 +19,7 @@ func (m *UserModel) Create(user *models.User) (*string, error) {
 	if err != nil {
 		if err, ok := err.(*pq.Error); ok {
 			if "unique_violation" == err.Code.Name() {
-				return nil, models.ErrNonUniqueEmail
+				return nil, models.ErrUniqueViolation
 			}
 		}
 		return nil, err

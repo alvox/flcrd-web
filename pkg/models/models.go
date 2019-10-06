@@ -7,8 +7,7 @@ import (
 
 var ErrNoRecord = errors.New("models: no matching record found")
 var ErrDeckNotFound = errors.New("models: deck does not exist")
-var ErrNonUniqueEmail = errors.New("models: user with this email already registered")
-var ErrNonUniqueCode = errors.New("models: verification code for user already exists")
+var ErrUniqueViolation = errors.New("models: unique violation")
 
 type Flashcard struct {
 	ID      string    `json:"id"`

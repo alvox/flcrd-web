@@ -66,30 +66,37 @@ func (app *application) emailOrPasswordIncorrect(w http.ResponseWriter) {
 	})
 }
 
-func (app *application) duplicatedEmail(w http.ResponseWriter) {
+func (app *application) emailNotUnique(w http.ResponseWriter) {
 	handleError(app, w, http.StatusBadRequest, &ApiError{
 		Code:    "007",
 		Message: "user with this email already registered",
 	})
 }
 
+func (app *application) deckNameNotUnique(w http.ResponseWriter) {
+	handleError(app, w, http.StatusBadRequest, &ApiError{
+		Code:    "008",
+		Message: "deck with this name already exists",
+	})
+}
+
 func (app *application) notFound(w http.ResponseWriter, model string) {
 	handleError(app, w, http.StatusNotFound, &ApiError{
-		Code:    "008",
+		Code:    "009",
 		Message: fmt.Sprintf("%s not found", model),
 	})
 }
 
 func (app *application) verificationCodeInvalid(w http.ResponseWriter) {
 	handleError(app, w, http.StatusBadRequest, &ApiError{
-		Code:    "009",
+		Code:    "010",
 		Message: "verification code invalid or expired",
 	})
 }
 
 func (app *application) invalidUserStatus(w http.ResponseWriter) {
 	handleError(app, w, http.StatusBadRequest, &ApiError{
-		Code:    "010",
+		Code:    "011",
 		Message: "user status is not suitable for this operation",
 	})
 }

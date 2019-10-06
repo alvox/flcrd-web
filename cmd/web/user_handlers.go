@@ -22,7 +22,7 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if existingUser != nil {
-		app.duplicatedEmail(w)
+		app.emailNotUnique(w)
 		return
 	}
 	pwdHash, err := hashAndSalt(user.Password)
