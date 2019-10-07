@@ -67,18 +67,25 @@ func (m *DeckModel) Get(id string) (*models.Deck, error) {
 	return d, nil
 }
 
-func (m *DeckModel) GetPublic() ([]*models.Deck, error) {
-	stmt := `select d.id, d.name, d.description, d.created, d.public,
+func (m *DeckModel) GetPublic(offset, limit int) ([]*models.Deck, int, error) {
+	stmt := `select count(*) from flcrd.deck where public = true;`
+	var total int
+	err := m.DB.QueryRow(stmt).Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
+	stmt = `select d.id, d.name, d.description, d.created, d.public,
                  (select count(*) from flcrd.flashcard where deck_id = d.id) as cards_count,
                  u.id, u.name
              from flcrd.deck d
              left join flcrd.user u on u.id = d.created_by
-             where d.public = true order by d.created;`
-	rows, err := m.DB.Query(stmt)
+             where d.public = true order by d.created offset $1 limit $2;`
+	rows, err := m.DB.Query(stmt, offset, limit)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	return read(rows)
+	decks, err := read(rows)
+	return decks, total, err
 }
 
 func (m *DeckModel) GetForUser(userID string) ([]*models.Deck, error) {

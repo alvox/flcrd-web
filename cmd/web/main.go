@@ -17,7 +17,7 @@ type application struct {
 		Create(string, string, string, bool) (*string, error)
 		Get(string) (*models.Deck, error)
 		GetForUser(string) ([]*models.Deck, error)
-		GetPublic() ([]*models.Deck, error)
+		GetPublic(int, int) ([]*models.Deck, int, error)
 		Update(*models.Deck) error
 		Delete(string) error
 		Search([]string) ([]*models.Deck, error)

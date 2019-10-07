@@ -35,10 +35,16 @@ func (app *application) createDeck(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) getPublicDecks(w http.ResponseWriter, r *http.Request) {
 	terms := extractSearchTerms(r)
+	page, offset, limit, err := extractPaging(r)
+	if err != nil {
+		app.badRequest(w)
+		return
+	}
 	var decks []*models.Deck
-	var err error
+	var total int
 	if terms == nil {
-		decks, err = app.decks.GetPublic()
+		decks, total, err = app.decks.GetPublic(offset, limit)
+		addLinkHeader(w, page, limit, total)
 	} else {
 		decks, err = app.decks.Search(terms)
 	}

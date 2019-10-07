@@ -47,7 +47,7 @@ func (app *application) refreshTokenInvalid(w http.ResponseWriter) {
 func (app *application) badRequest(w http.ResponseWriter) {
 	handleError(app, w, http.StatusBadRequest, &ApiError{
 		Code:    "004",
-		Message: "can't read request body",
+		Message: "can't read request",
 	})
 }
 

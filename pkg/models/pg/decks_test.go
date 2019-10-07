@@ -164,7 +164,7 @@ func TestDeckModel_GetPublic_Positive(t *testing.T) {
 	db, teardown := newTestDB(t)
 	defer teardown()
 	model := DeckModel{db}
-	decks, err := model.GetPublic()
+	decks, total, err := model.GetPublic(0, 5)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
@@ -173,6 +173,9 @@ func TestDeckModel_GetPublic_Positive(t *testing.T) {
 	}
 	if !reflect.DeepEqual(testDecks[1], decks[0]) {
 		t.Errorf("want %v; got %v", testDecks[1], decks[0])
+	}
+	if total != 2 {
+		t.Errorf("unexpected total: want %d, got %d", 2, total)
 	}
 }
 

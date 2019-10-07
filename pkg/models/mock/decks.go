@@ -41,8 +41,8 @@ func (m *DeckModel) Get(id string) (*models.Deck, error) {
 	}
 }
 
-func (m *DeckModel) GetPublic() ([]*models.Deck, error) {
-	return []*models.Deck{mockDeck}, nil
+func (m *DeckModel) GetPublic(offset, limit int) ([]*models.Deck, int, error) {
+	return []*models.Deck{mockDeck}, 1, nil
 }
 
 func (m *DeckModel) GetForUser(userID string) ([]*models.Deck, error) {
