@@ -25,8 +25,8 @@ services:
     container_name: flcrd-api
     image: docker.pkg.github.com/alvox/flcrd-web/flcrd-api:latest
     restart: unless-stopped
-#    ports:
-#      - 5000:5000
+    ports:
+      - 5000:5000
     environment:
       PORT: :5000
       DSN: postgres://flcrd:flcrd@flcrd-test-db/flcrd?sslmode=disable
@@ -35,6 +35,21 @@ services:
       flcrd.nw:
         aliases:
           - flcrd-api
+
+#  flcrd-server:
+#    container_name: flcrd-server
+#    image: caddy:2.1.1
+#    ports:
+#      - 80:80
+#      - 2019:2019
+#    volumes:
+##      - /Users/al/a/flcrd-web/env/Caddyfile:/etc/caddy/Caddyfile
+#      - ~/tmp/flcrd-caddy/data:/data
+#      - ~/tmp/flcrd-caddy/config:/config
+#    networks:
+#      flcrd.nw:
+#        aliases:
+#          - flcrd-server
 
   flcrd-nginx:
     container_name: flcrd-nginx

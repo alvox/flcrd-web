@@ -1,0 +1,27 @@
+{
+  "apps": {
+    "http": {
+      "servers": {
+        "myserver": {
+          "listen": [":80"],
+          "routes": [
+            {
+              "handle": [
+                {
+                  "handler": "reverse_proxy",
+                  "upstreams": [
+                    {"dial": "localhost:5000"}
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "automatic_https": {
+          "disable": true,
+          "disable_redirects": true
+        }
+      }
+    }
+  }
+}
