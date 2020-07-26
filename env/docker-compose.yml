@@ -30,7 +30,7 @@ services:
     environment:
       PORT: :5000
       DSN: postgres://flcrd:flcrd@flcrd-test-db/flcrd?sslmode=disable
-      APPKEY: myappkey
+      AUTH_DOMAIN: dev-alvox.us.auth0.com
     networks:
       flcrd.nw:
         aliases:

@@ -26,18 +26,15 @@ create table flcrd.flashcard (
 );
 
 create table flcrd.user (
-    id                uuid not null default uuid_generate_v4(),
-    name              text      not null,
-    email             text      not null,
-    password          text      not null,
-    status            text      not null,
-    refresh_token     text      not null default '',
-    refresh_token_exp timestamp not null default now(),
+    id                uuid      not null default uuid_generate_v4(),
+    external_id       text      not null,
+    email             text,
     created           timestamp not null default now(),
 
     primary key (id)
 );
 create unique index user_email_idx on flcrd.user(email);
+create unique index user_email_idx on flcrd.user(external_id);
 
 create table flcrd.verification_code(
     user_id  uuid      not null,

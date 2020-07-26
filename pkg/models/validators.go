@@ -9,31 +9,11 @@ var r = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-z
 //todo: tests
 func (u User) Validate(validateName bool) *ValidationErrors {
 	errs := u.ValidateEmail()
-
-	if validateName && u.Name == "" {
-		errs.Add("name", "field is required")
-	}
-	if validateName && u.Name != "" && len(u.Name) > 50 {
-		errs.Add("name", "max length is 50 characters")
-	}
-	if u.Password == "" {
-		errs.Add("password", "field is required")
-	}
-	if u.Password != "" && len(u.Password) < 5 || len(u.Password) > 30 {
-		errs.Add("password", "min length is 5 characters, max length is 30 characters")
-	}
 	return errs
 }
 
 func (u User) ValidateForUpdate() *ValidationErrors {
 	errs := u.ValidateEmail()
-
-	if u.Name == "" {
-		errs.Add("name", "field is required")
-	}
-	if u.Name != "" && len(u.Name) > 50 {
-		errs.Add("name", "max length is 50 characters")
-	}
 	return errs
 }
 
@@ -95,18 +75,6 @@ func (f Flashcard) Validate() *ValidationErrors {
 	}
 	if len(f.Rear) > 250 {
 		errs.Add("rear", "max length is 250 characters")
-	}
-	return errs
-}
-
-func (t Token) Validate() *ValidationErrors {
-	errs := NewValidationErrors()
-
-	if t.AccessToken == "" {
-		errs.Add("access_token", "field is required")
-	}
-	if t.RefreshToken == "" {
-		errs.Add("refresh_token", "field is required")
 	}
 	return errs
 }

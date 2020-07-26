@@ -28,25 +28,17 @@ type Deck struct {
 }
 
 type DeckCreator struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID         string `json:"id"`
+	ExternalID string `json:"external_id"`
+	Email      string `json:"email"`
 }
 
 type User struct {
-	ID       string    `json:"id"`
-	Name     string    `json:"name"`
-	Email    string    `json:"email"`
-	Password string    `json:"password,omitempty"`
-	Status   string    `json:"status"`
-	Created  time.Time `json:"created"`
-	Token    Token     `json:"token,omitempty"`
-	Stats    Stats     `json:"stats,omitempty"`
-}
-
-type Token struct {
-	AccessToken     string    `json:"access_token,omitempty"`
-	RefreshToken    string    `json:"refresh_token,omitempty"`
-	RefreshTokenExp time.Time `json:"refresh_token_exp,omitempty"`
+	ID         string    `json:"id"`
+	Email      string    `json:"email"`
+	Created    time.Time `json:"created"`
+	ExternalID string    `json:"external_id"`
+	Stats      Stats     `json:"stats,omitempty"`
 }
 
 type Stats struct {

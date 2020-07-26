@@ -35,7 +35,6 @@ type application struct {
 		Get(string) (*models.User, error)
 		GetProfile(string) (*models.User, error)
 		GetByEmail(string) (*models.User, error)
-		UpdateRefreshToken(user *models.User) error
 		Update(user *models.User) error
 		Delete(string) error
 	}
@@ -55,7 +54,7 @@ type application struct {
 func main() {
 	port := flag.String("port", ":5000", "Application port")
 	dsn := flag.String("dsn", "postgres://flcrd:flcrd@flcrd-test-db/flcrd?sslmode=disable", "Postgres data source")
-	key := flag.String("appkey", "test-key", "Application key")
+	authDomain := flag.String("auth_domain", "", "Auth0 domain")
 	mailUrl := flag.String("mail_api_url", "", "URL to the email service")
 	mailKey := flag.String("mail_api_key", "", "API key to the email service")
 	flag.Parse()
@@ -88,7 +87,7 @@ func main() {
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-	initJwt(*key)
+	initAuth(*authDomain)
 	infoLog.Printf("Starting server on %s port", *port)
 	err = srv.ListenAndServe()
 	errorLog.Fatal(err)

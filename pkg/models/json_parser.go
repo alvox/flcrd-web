@@ -13,14 +13,6 @@ func ParseUser(r *http.Request) *User {
 	return &user
 }
 
-func ParseTokens(r *http.Request) *Token {
-	var token Token
-	if ok := parse(r, &token); !ok {
-		return nil
-	}
-	return &token
-}
-
 func ParseDeck(r *http.Request) *Deck {
 	var deck Deck
 	if ok := parse(r, &deck); !ok {

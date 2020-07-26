@@ -10,7 +10,7 @@ func (app *application) routes() http.Handler {
 	router := mux.NewRouter()
 	// Middleware
 	router.Use(app.logRequest)
-	auth := alice.New(app.validateToken)
+	auth := alice.New(app.validateToken, app.supplyUserId)
 	// Decks
 	router.Handle("/v0/decks", auth.ThenFunc(app.createDeck)).Methods("POST")
 	router.Handle("/v0/decks", auth.ThenFunc(app.getDecksForUser)).Methods("GET")
@@ -24,12 +24,10 @@ func (app *application) routes() http.Handler {
 	router.Handle("/v0/decks/{deckID}/flashcards/{flashcardID}", auth.ThenFunc(app.updateFlashcard)).Methods("PUT")
 	router.Handle("/v0/decks/{deckID}/flashcards/{flashcardID}", auth.ThenFunc(app.deleteFlashcard)).Methods("DELETE")
 	// Users
-	router.HandleFunc("/v0/users/register", app.registerUser).Methods("POST")
+	//router.HandleFunc("/v0/users/register", app.registerUser).Methods("POST")
 	router.Handle("/v0/users", auth.ThenFunc(app.getUser)).Methods("GET")
 	router.Handle("/v0/users", auth.ThenFunc(app.updateUser)).Methods("PUT")
 	router.Handle("/v0/users", auth.ThenFunc(app.deleteUser)).Methods("DELETE")
-	router.HandleFunc("/v0/users/login", app.login).Methods("POST")
-	router.HandleFunc("/v0/users/refresh", app.refreshToken).Methods("POST")
 	router.HandleFunc("/v0/users/activate/{code}", app.activate).Methods("POST")
 	router.Handle("/v0/users/code", auth.ThenFunc(app.resendConfirmation)).Methods("POST")
 	// Public routes
