@@ -49,7 +49,7 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) getUser(w http.ResponseWriter, r *http.Request) {
-	id := r.Header.Get("UserID")
+	id := r.Context().Value("UserID").(string)
 	user, err := app.users.GetProfile(id)
 	if modelError(app, err, w, "user") {
 		return
@@ -67,7 +67,7 @@ func (app *application) updateUser(w http.ResponseWriter, r *http.Request) {
 		app.validationError(w, errs)
 		return
 	}
-	userID := r.Header.Get("UserID")
+	userID := r.Context().Value("UserID").(string)
 	existingUser, err := app.users.Get(userID)
 	if modelError(app, err, w, "user") {
 		return
@@ -208,7 +208,7 @@ func (app *application) activate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) resendConfirmation(w http.ResponseWriter, r *http.Request) {
-	userID := r.Header.Get("UserID")
+	userID := r.Context().Value("UserID").(string)
 	user, err := app.users.Get(userID)
 	if err != nil {
 		app.serverError(w, err)
@@ -258,7 +258,7 @@ func (app *application) sendConfirmation(userID, userName, email string) {
 }
 
 func (app *application) deleteUser(w http.ResponseWriter, r *http.Request) {
-	userID := r.Header.Get("UserID")
+	userID := r.Context().Value("UserID").(string)
 	err := app.users.Delete(userID)
 	if err != nil {
 		app.serverError(w, err)

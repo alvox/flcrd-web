@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"strings"
 )
@@ -29,8 +30,8 @@ func (app *application) validateToken(next http.Handler) http.Handler {
 			app.accessTokenInvalid(w)
 			return
 		}
-		r.Header.Add("UserID", userID)
-		next.ServeHTTP(w, r)
+		ctx := context.WithValue(r.Context(), "UserID", userID)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 

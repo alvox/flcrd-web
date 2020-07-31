@@ -64,7 +64,7 @@ func (app *application) getFlashcardsForUser(w http.ResponseWriter, r *http.Requ
 	if modelError(app, err, w, "deck") {
 		return
 	}
-	flashcards, err := app.flashcards.GetForUser(deckID, r.Header.Get("UserID"))
+	flashcards, err := app.flashcards.GetForUser(deckID, r.Context().Value("UserID").(string))
 	if err != nil {
 		app.serverError(w, err)
 	}

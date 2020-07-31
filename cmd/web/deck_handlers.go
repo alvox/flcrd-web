@@ -16,7 +16,7 @@ func (app *application) createDeck(w http.ResponseWriter, r *http.Request) {
 		app.validationError(w, errs)
 		return
 	}
-	id, err := app.decks.Create(deck.Name, deck.Description, r.Header.Get("UserID"), deck.Public)
+	id, err := app.decks.Create(deck.Name, deck.Description, r.Context().Value("UserID").(string), deck.Public)
 	if err == models.ErrUniqueViolation {
 		app.deckNameNotUnique(w)
 		return
@@ -56,7 +56,7 @@ func (app *application) getPublicDecks(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) getDecksForUser(w http.ResponseWriter, r *http.Request) {
-	decks, err := app.decks.GetForUser(r.Header.Get("UserID"))
+	decks, err := app.decks.GetForUser(r.Context().Value("UserID").(string))
 	if err != nil {
 		app.serverError(w, err)
 		return
