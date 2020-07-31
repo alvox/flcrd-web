@@ -9,7 +9,7 @@ import (
 func (app *application) routes() http.Handler {
 	router := mux.NewRouter()
 	// Middleware
-	router.Use(app.logRequest)
+	router.Use(app.logRequest, app.contentType)
 	auth := alice.New(app.validateToken)
 	// Decks
 	router.Handle("/v0/decks", auth.ThenFunc(app.createDeck)).Methods("POST")

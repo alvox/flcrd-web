@@ -31,13 +31,14 @@ type application struct {
 		Delete(string, string) error
 	}
 	users interface {
-		Create(user *models.User) (*string, error)
+		Create(user *models.User, credentials *models.Credentials) (*string, error)
 		Get(string) (*models.User, error)
 		GetProfile(string) (*models.User, error)
 		GetByEmail(string) (*models.User, error)
-		UpdateRefreshToken(user *models.User) error
 		Update(user *models.User) error
 		Delete(string) error
+		GetCredentials(string) (*models.Credentials, error)
+		UpdateRefreshToken(credentials *models.Credentials) error
 	}
 	verification interface {
 		Create(code models.VerificationCode) (string, error)
@@ -54,7 +55,7 @@ type application struct {
 
 func main() {
 	port := flag.String("port", ":5000", "Application port")
-	dsn := flag.String("dsn", "postgres://flcrd:flcrd@flcrd-test-db/flcrd?sslmode=disable", "Postgres data source")
+	dsn := flag.String("dsn", "postgres://flcrd:flcrd@localhost/flcrd?sslmode=disable", "Postgres data source")
 	key := flag.String("appkey", "test-key", "Application key")
 	mailUrl := flag.String("mail_api_url", "", "URL to the email service")
 	mailKey := flag.String("mail_api_key", "", "API key to the email service")

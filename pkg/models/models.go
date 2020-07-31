@@ -33,14 +33,13 @@ type DeckCreator struct {
 }
 
 type User struct {
-	ID       string    `json:"id"`
-	Name     string    `json:"name"`
-	Email    string    `json:"email"`
-	Password string    `json:"password,omitempty"`
-	Status   string    `json:"status"`
-	Created  time.Time `json:"created"`
-	Token    Token     `json:"token,omitempty"`
-	Stats    Stats     `json:"stats,omitempty"`
+	ID      string    `json:"id"`
+	Name    string    `json:"name"`
+	Email   string    `json:"email"`
+	Status  string    `json:"status"`
+	Created time.Time `json:"created,omitempty"`
+	Token   Token     `json:"token,omitempty"`
+	Stats   Stats     `json:"stats,omitempty"`
 }
 
 type Token struct {
@@ -62,4 +61,16 @@ type VerificationCode struct {
 
 func (c VerificationCode) Expired() bool {
 	return time.Now().After(c.CodeExp)
+}
+
+type Credentials struct {
+	UserID   string
+	Password string
+	Token    Token
+}
+
+type AuthRequest struct {
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }

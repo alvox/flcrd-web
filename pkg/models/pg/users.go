@@ -10,12 +10,11 @@ type UserModel struct {
 	DB *sql.DB
 }
 
-func (m *UserModel) Create(user *models.User) (*string, error) {
-	stmt := `insert into flcrd.user (name, email, password, status, refresh_token, refresh_token_exp) 
-             values ($1, $2, $3, $4, $5, $6) returning id;`
+// todo: wrap in transaction
+func (m *UserModel) Create(user *models.User, credentials *models.Credentials) (*string, error) {
+	stmt := `insert into flcrd.user (name, email, status) values ($1, $2, $3) returning id;`
 	var id string
-	err := m.DB.QueryRow(stmt, user.Name, user.Email, user.Password, user.Status,
-		user.Token.RefreshToken, user.Token.RefreshTokenExp).Scan(&id)
+	err := m.DB.QueryRow(stmt, user.Name, user.Email, user.Status).Scan(&id)
 	if err != nil {
 		if err, ok := err.(*pq.Error); ok {
 			if "unique_violation" == err.Code.Name() {
@@ -24,14 +23,22 @@ func (m *UserModel) Create(user *models.User) (*string, error) {
 		}
 		return nil, err
 	}
+	stmt = `insert into flcrd.credentials (user_id, password, refresh_token, refresh_token_exp) values ($1, $2, $3, $4);`
+	_, err = m.DB.Exec(stmt, id, credentials.Password, credentials.Token.RefreshToken, credentials.Token.RefreshTokenExp)
+	if err != nil {
+		return nil, err
+	}
 	return &id, nil
 }
 
 func (m *UserModel) Get(userID string) (*models.User, error) {
-	stmt := `select id, name, email, password, status, created, refresh_token, refresh_token_exp 
-             from flcrd.user where id = $1;`
+	stmt := `select u.id, u.name, u.email, u.status, u.created, 
+                    c.refresh_token, c.refresh_token_exp 
+             from flcrd.user u
+             left join flcrd.credentials c on c.user_id = u.id
+             where u.id = $1;`
 	u := &models.User{}
-	err := m.DB.QueryRow(stmt, userID).Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.Status, &u.Created,
+	err := m.DB.QueryRow(stmt, userID).Scan(&u.ID, &u.Name, &u.Email, &u.Status, &u.Created,
 		&u.Token.RefreshToken, &u.Token.RefreshTokenExp)
 	if err == sql.ErrNoRows {
 		return nil, models.ErrNoRecord
@@ -40,7 +47,6 @@ func (m *UserModel) Get(userID string) (*models.User, error) {
 		return nil, err
 	}
 	u.Created = u.Created.UTC()
-	u.Token.RefreshTokenExp = u.Token.RefreshTokenExp.UTC()
 	return u, nil
 }
 
@@ -61,16 +67,13 @@ func (m *UserModel) GetProfile(userID string) (*models.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	u.Created = u.Created.UTC()
 	return u, nil
 }
 
 func (m *UserModel) GetByEmail(email string) (*models.User, error) {
-	stmt := `select id, name, email, password, status, created, refresh_token, refresh_token_exp 
-             from flcrd.user where email = $1;`
+	stmt := `select id, name, email, status, created from flcrd.user where email = $1;`
 	u := &models.User{}
-	err := m.DB.QueryRow(stmt, email).Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.Status, &u.Created,
-		&u.Token.RefreshToken, &u.Token.RefreshTokenExp)
+	err := m.DB.QueryRow(stmt, email).Scan(&u.ID, &u.Name, &u.Email, &u.Status, &u.Created)
 	if err == sql.ErrNoRows {
 		return nil, models.ErrNoRecord
 	}
@@ -79,18 +82,6 @@ func (m *UserModel) GetByEmail(email string) (*models.User, error) {
 	}
 	u.Created = u.Created.UTC()
 	return u, nil
-}
-
-func (m *UserModel) UpdateRefreshToken(user *models.User) error {
-	stmt := `update flcrd.user set refresh_token = $1, refresh_token_exp = $2 where id = $3;`
-	r, err := m.DB.Exec(stmt, user.Token.RefreshToken, user.Token.RefreshTokenExp, user.ID)
-	if err != nil {
-		return err
-	}
-	if err := rowsCnt(r); err != nil {
-		return err
-	}
-	return nil
 }
 
 func (m *UserModel) Update(user *models.User) error {
@@ -125,4 +116,30 @@ func (m *UserModel) Delete(userID string) error {
 		return err
 	}
 	return tx.Commit()
+}
+
+// Credentials
+
+func (m *UserModel) GetCredentials(userID string) (*models.Credentials, error) {
+	stmt := `select user_id, password, refresh_token, refresh_token_exp 
+             from flcrd.credentials 
+             where user_id = $1;`
+	c := &models.Credentials{}
+	err := m.DB.QueryRow(stmt, userID).Scan(&c.UserID, &c.Password, &c.Token.RefreshToken, &c.Token.RefreshTokenExp)
+	if err != nil {
+		return nil, err
+	}
+	return c, nil
+}
+
+func (m *UserModel) UpdateRefreshToken(c *models.Credentials) error {
+	stmt := `update flcrd.credentials set refresh_token = $1, refresh_token_exp = $2 where user_id = $3;`
+	r, err := m.DB.Exec(stmt, c.Token.RefreshToken, c.Token.RefreshTokenExp, c.UserID)
+	if err != nil {
+		return err
+	}
+	if err := rowsCnt(r); err != nil {
+		return err
+	}
+	return nil
 }

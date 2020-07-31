@@ -8,7 +8,7 @@ var r = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-z
 
 //todo: tests
 func (u User) Validate(validateName bool) *ValidationErrors {
-	errs := u.ValidateEmail()
+	errs := validateEmail(u.Email)
 
 	if validateName && u.Name == "" {
 		errs.Add("name", "field is required")
@@ -16,17 +16,11 @@ func (u User) Validate(validateName bool) *ValidationErrors {
 	if validateName && u.Name != "" && len(u.Name) > 50 {
 		errs.Add("name", "max length is 50 characters")
 	}
-	if u.Password == "" {
-		errs.Add("password", "field is required")
-	}
-	if u.Password != "" && len(u.Password) < 5 || len(u.Password) > 30 {
-		errs.Add("password", "min length is 5 characters, max length is 30 characters")
-	}
 	return errs
 }
 
 func (u User) ValidateForUpdate() *ValidationErrors {
-	errs := u.ValidateEmail()
+	errs := validateEmail(u.Email)
 
 	if u.Name == "" {
 		errs.Add("name", "field is required")
@@ -37,16 +31,16 @@ func (u User) ValidateForUpdate() *ValidationErrors {
 	return errs
 }
 
-func (u User) ValidateEmail() *ValidationErrors {
+func validateEmail(email string) *ValidationErrors {
 	errs := NewValidationErrors()
 
-	if u.Email == "" {
+	if email == "" {
 		errs.Add("email", "field is required")
 	}
-	if u.Email != "" && len(u.Email) > 120 {
+	if email != "" && len(email) > 120 {
 		errs.Add("email", "max length is 120 characters")
 	}
-	if u.Email != "" && !r.MatchString(u.Email) {
+	if email != "" && !r.MatchString(email) {
 		errs.Add("email", "invalid email address")
 	}
 	return errs
@@ -107,6 +101,24 @@ func (t Token) Validate() *ValidationErrors {
 	}
 	if t.RefreshToken == "" {
 		errs.Add("refresh_token", "field is required")
+	}
+	return errs
+}
+
+func (a AuthRequest) Validate(validateName bool) *ValidationErrors {
+	errs := validateEmail(a.Email)
+
+	if validateName && a.Name == "" {
+		errs.Add("name", "field is required")
+	}
+	if validateName && a.Name != "" && len(a.Name) > 50 {
+		errs.Add("name", "max length is 50 characters")
+	}
+	if a.Password == "" {
+		errs.Add("password", "field is required")
+	}
+	if a.Password != "" && len(a.Password) < 5 || len(a.Password) > 30 {
+		errs.Add("password", "min length is 5 characters, max length is 30 characters")
 	}
 	return errs
 }

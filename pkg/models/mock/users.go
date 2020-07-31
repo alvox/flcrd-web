@@ -7,11 +7,10 @@ import (
 )
 
 var mockUser = &models.User{
-	ID:       "test_user_id",
-	Name:     "test_user_name",
-	Email:    "test_user_email@example.com",
-	Password: hashPassword("test_password"),
-	Created:  time.Now(),
+	ID:      "test_user_id",
+	Name:    "test_user_name",
+	Email:   "test_user_email@example.com",
+	Created: time.Now(),
 	Token: models.Token{
 		AccessToken:     "test_access_token",
 		RefreshToken:    "test_refresh_token",
@@ -21,7 +20,7 @@ var mockUser = &models.User{
 
 type UserModel struct{}
 
-func (m *UserModel) Create(user *models.User) (*string, error) {
+func (m *UserModel) Create(user *models.User, credentials *models.Credentials) (*string, error) {
 	return &mockUser.ID, nil
 }
 

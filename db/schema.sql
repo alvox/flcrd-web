@@ -26,14 +26,11 @@ create table flcrd.flashcard (
 );
 
 create table flcrd.user (
-    id                uuid not null default uuid_generate_v4(),
-    name              text      not null,
-    email             text      not null,
-    password          text      not null,
-    status            text      not null,
-    refresh_token     text      not null default '',
-    refresh_token_exp timestamp not null default now(),
-    created           timestamp not null default now(),
+    id      uuid not null default uuid_generate_v4(),
+    name    text      not null,
+    email   text      not null,
+    status  text      not null,
+    created timestamp not null default now(),
 
     primary key (id)
 );
@@ -47,6 +44,15 @@ create table flcrd.verification_code(
     primary key (user_id)
 );
 create unique index auth_code_idx on flcrd.verification_code(code);
+
+create table flcrd.credentials(
+    user_id           uuid not null,
+    password          text not null,
+    refresh_token     text not null default '',
+    refresh_token_exp timestamp not null default now(),
+
+    primary key (user_id)
+);
 
 --- TEST DB ---
 -- create user test with password 'pass';

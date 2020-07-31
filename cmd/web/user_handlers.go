@@ -7,16 +7,16 @@ import (
 )
 
 func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
-	user := models.ParseUser(r)
-	if user == nil {
+	auth := models.ParseAuthRequest(r)
+	if auth == nil {
 		app.badRequest(w)
 		return
 	}
-	if errs := user.Validate(true); errs.Present() {
+	if errs := auth.Validate(true); errs.Present() {
 		app.validationError(w, errs)
 		return
 	}
-	existingUser, err := app.users.GetByEmail(user.Email)
+	existingUser, err := app.users.GetByEmail(auth.Email)
 	if err != nil && err != models.ErrNoRecord {
 		app.serverError(w, err)
 		return
@@ -25,18 +25,17 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 		app.emailNotUnique(w)
 		return
 	}
-	pwdHash, err := hashAndSalt(user.Password)
+	pwdHash, err := hashAndSalt(auth.Password)
 	if err != nil {
 		app.serverError(w, err)
 	}
-	user.Password = pwdHash
-	user.Token.RefreshToken, user.Token.RefreshTokenExp = generateRefreshToken()
-	user.Status = "PENDING"
-	userId, err := app.users.Create(user)
+	credentials := NewCredentials(pwdHash)
+	user := NewUser(*auth)
+	userId, err := app.users.Create(&user, &credentials)
 	if err != nil {
 		app.serverError(w, err)
 	}
-	user, err = app.users.Get(*userId)
+	createdUser, err := app.users.Get(*userId)
 	if err != nil {
 		app.serverError(w, err)
 	}
@@ -44,10 +43,9 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.serverError(w, err)
 	}
-	user.Token.AccessToken = *accessToken
-	user.Password = ""
-	go app.sendConfirmation(user.ID, user.Name, user.Email)
-	reply(w, http.StatusCreated, user)
+	createdUser.Token.AccessToken = *accessToken
+	go app.sendConfirmation(createdUser.ID, createdUser.Name, createdUser.Email)
+	reply(w, http.StatusCreated, createdUser)
 }
 
 func (app *application) getUser(w http.ResponseWriter, r *http.Request) {
@@ -56,7 +54,6 @@ func (app *application) getUser(w http.ResponseWriter, r *http.Request) {
 	if modelError(app, err, w, "user") {
 		return
 	}
-	user.Password = ""
 	reply(w, http.StatusOK, user)
 }
 
@@ -89,21 +86,20 @@ func (app *application) updateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.serverError(w, err)
 	}
-	existingUser.Password = ""
 	reply(w, http.StatusOK, existingUser)
 }
 
 func (app *application) login(w http.ResponseWriter, r *http.Request) {
-	user := models.ParseUser(r)
-	if user == nil {
+	auth := models.ParseAuthRequest(r)
+	if auth == nil {
 		app.badRequest(w)
 		return
 	}
-	if errs := user.Validate(false); errs.Present() {
+	if errs := auth.Validate(false); errs.Present() {
 		app.validationError(w, errs)
 		return
 	}
-	existingUser, err := app.users.GetByEmail(user.Email)
+	existingUser, err := app.users.GetByEmail(auth.Email)
 	if err != nil {
 		if err == models.ErrNoRecord {
 			app.emailOrPasswordIncorrect(w)
@@ -112,12 +108,17 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
-	if !checkPassword(existingUser.Password, user.Password) {
+	credentials, err := app.users.GetCredentials(existingUser.ID)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	if !checkPassword(credentials.Password, auth.Password) {
 		app.emailOrPasswordIncorrect(w)
 		return
 	}
-	existingUser.Token.RefreshToken, existingUser.Token.RefreshTokenExp = generateRefreshToken()
-	err = app.users.UpdateRefreshToken(existingUser)
+	credentials.Token.RefreshToken, credentials.Token.RefreshTokenExp = generateRefreshToken()
+	err = app.users.UpdateRefreshToken(credentials)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -127,8 +128,8 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
+	existingUser.Token = credentials.Token
 	existingUser.Token.AccessToken = *accessToken
-	existingUser.Password = ""
 	reply(w, http.StatusOK, existingUser)
 }
 
@@ -147,7 +148,7 @@ func (app *application) refreshToken(w http.ResponseWriter, r *http.Request) {
 		app.accessTokenInvalid(w)
 		return
 	}
-	user, err := app.users.Get(userID)
+	credentials, err := app.users.GetCredentials(userID)
 	if err != nil {
 		if err == models.ErrNoRecord {
 			app.accessTokenInvalid(w)
@@ -156,7 +157,7 @@ func (app *application) refreshToken(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
-	if !validateRefreshToken(token.RefreshToken, user) {
+	if !validateRefreshToken(token.RefreshToken, credentials) {
 		app.refreshTokenInvalid(w)
 		return
 	}
@@ -264,4 +265,19 @@ func (app *application) deleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	reply(w, http.StatusOK, nil)
+}
+
+func NewCredentials(pwdHash string) models.Credentials {
+	return models.Credentials{
+		Password: pwdHash,
+		Token:    NewTokens(),
+	}
+}
+
+func NewUser(auth models.AuthRequest) models.User {
+	return models.User{
+		Name:   auth.Name,
+		Email:  auth.Email,
+		Status: "PENDING",
+	}
 }

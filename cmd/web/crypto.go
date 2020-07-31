@@ -85,11 +85,18 @@ func generateRefreshToken() (string, time.Time) {
 	return t, exp
 }
 
-func validateRefreshToken(token string, user *models.User) bool {
-	if token != user.Token.RefreshToken {
+func NewTokens() models.Token {
+	return models.Token{
+		RefreshToken:    uniuri.NewLen(40),
+		RefreshTokenExp: time.Now().Add(24 * time.Hour * 30),
+	}
+}
+
+func validateRefreshToken(token string, credentials *models.Credentials) bool {
+	if token != credentials.Token.RefreshToken {
 		return false
 	}
-	if time.Now().After(user.Token.RefreshTokenExp) {
+	if time.Now().After(credentials.Token.RefreshTokenExp) {
 		return false
 	}
 	return true

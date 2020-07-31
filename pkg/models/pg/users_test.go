@@ -16,17 +16,18 @@ func TestUserModel_Create_Positive(t *testing.T) {
 	defer teardown()
 	model := UserModel{db}
 	u := &models.User{
-		Name:     "Test",
-		Email:    "test_email_1@example.com",
-		Password: "some_password",
-		Status:   "PENDING",
+		Name:  "Test",
+		Email: "test_email_1@example.com",
+		//Password: "some_password",
+		Status: "PENDING",
 		Token: models.Token{
 			AccessToken:     "authtoken",
 			RefreshToken:    "refreshtoken",
 			RefreshTokenExp: parseTime("2019-12-01T22:08:41+00:00", t),
 		},
 	}
-	_, err := model.Create(u)
+	c := &models.Credentials{}
+	_, err := model.Create(u, c)
 	if err != nil {
 		t.Error("Failed to create new user")
 	}
@@ -40,9 +41,9 @@ func TestUserModel_Create_Positive(t *testing.T) {
 	if user.Email != "test_email_1@example.com" {
 		t.Errorf("invalid user email: %s", user.Email)
 	}
-	if user.Password != "some_password" {
-		t.Errorf("invalid user password: %s", user.Password)
-	}
+	//if user.Password != "some_password" {
+	//	t.Errorf("invalid user password: %s", user.Password)
+	//}
 	if user.Status != "PENDING" {
 		t.Errorf("invalid user status: %s", user.Status)
 	}
@@ -56,16 +57,17 @@ func TestUserModel_Create_Email_Exists(t *testing.T) {
 	defer teardown()
 	model := UserModel{db}
 	u := &models.User{
-		Name:     "Test",
-		Email:    "testuser1@example.com",
-		Password: "some_password",
-		Status:   "PENDING",
+		Name:  "Test",
+		Email: "testuser1@example.com",
+		//Password: "some_password",
+		Status: "PENDING",
 		Token: models.Token{
 			AccessToken:  "authtoken",
 			RefreshToken: "refreshtoken",
 		},
 	}
-	_, err := model.Create(u)
+	c := &models.Credentials{}
+	_, err := model.Create(u, c)
 	if err == nil {
 		t.Error("expect unique constraint violation")
 	}
@@ -90,12 +92,12 @@ func TestUserModel_Get(t *testing.T) {
 			name:   "User 1",
 			userId: "testuser_id_1",
 			wantUser: &models.User{
-				ID:       "testuser_id_1",
-				Name:     "Testuser1",
-				Email:    "testuser1@example.com",
-				Password: "12345",
-				Status:   "ACTIVE",
-				Created:  time.Date(2019, 1, 1, 9, 0, 0, 0, time.UTC),
+				ID:    "testuser_id_1",
+				Name:  "Testuser1",
+				Email: "testuser1@example.com",
+				//Password: "12345",
+				Status:  "ACTIVE",
+				Created: time.Date(2019, 1, 1, 9, 0, 0, 0, time.UTC),
 				Token: models.Token{
 					AccessToken:     "",
 					RefreshToken:    "refreshtoken",
@@ -134,14 +136,14 @@ func TestUserModel_UpdateRefreshToken(t *testing.T) {
 	db, teardown := newTestDB(t)
 	defer teardown()
 	model := UserModel{db}
-	u := &models.User{
-		ID: "testuser_id_2",
+	c := &models.Credentials{
+		UserID: "testuser_id_2",
 		Token: models.Token{
 			RefreshToken:    "newnew",
 			RefreshTokenExp: parseTime("2019-04-17T11:57:00+00:00", t),
 		},
 	}
-	err := model.UpdateRefreshToken(u)
+	err := model.UpdateRefreshToken(c)
 	if err != nil {
 		t.Errorf("failed to update refresh token: %s", err.Error())
 	}

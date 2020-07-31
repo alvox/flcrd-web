@@ -37,6 +37,14 @@ func ParseFlashcard(r *http.Request) *Flashcard {
 	return &flashcard
 }
 
+func ParseAuthRequest(r *http.Request) *AuthRequest {
+	var authRequest AuthRequest
+	if ok := parse(r, &authRequest); !ok {
+		return nil
+	}
+	return &authRequest
+}
+
 func parse(r *http.Request, i interface{}) bool {
 	if r.Body == nil {
 		return false
