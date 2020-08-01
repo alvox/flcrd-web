@@ -47,6 +47,7 @@ func (m *UserModel) Get(userID string) (*models.User, error) {
 		return nil, err
 	}
 	u.Created = u.Created.UTC()
+	u.Token.RefreshTokenExp = u.Token.RefreshTokenExp.UTC()
 	return u, nil
 }
 
@@ -110,6 +111,11 @@ func (m *UserModel) Delete(userID string) error {
 		_ = tx.Rollback()
 		return err
 	}
+	_, err = tx.Exec(`delete from flcrd.credentials where user_id = $1;`, userID)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
 	_, err = tx.Exec(`delete from flcrd.deck where created_by = $1;`, userID)
 	if err != nil {
 		_ = tx.Rollback()
@@ -126,9 +132,13 @@ func (m *UserModel) GetCredentials(userID string) (*models.Credentials, error) {
              where user_id = $1;`
 	c := &models.Credentials{}
 	err := m.DB.QueryRow(stmt, userID).Scan(&c.UserID, &c.Password, &c.Token.RefreshToken, &c.Token.RefreshTokenExp)
+	if err == sql.ErrNoRows {
+		return nil, models.ErrNoRecord
+	}
 	if err != nil {
 		return nil, err
 	}
+	c.Token.RefreshTokenExp = c.Token.RefreshTokenExp.UTC()
 	return c, nil
 }
 
