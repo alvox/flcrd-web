@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"testing"
 )
@@ -11,19 +12,11 @@ func TestGetDeckForUser(t *testing.T) {
 	defer ts.Close()
 
 	token, err := generateAccessToken("test_user_1")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	status, _, resp := ts.get(t, "/v0/decks", *token)
 	decks, valid := parseDecks(string(resp))
-	if !valid {
-		t.Error()
-	}
-	if status != http.StatusOK {
-		t.Errorf("status: want 200; got %d", status)
-	}
-	if len(*decks) != 1 {
-		t.Errorf("expected 1 deck; got %d", len(*decks))
-	}
+	require.True(t, valid)
+	require.Equal(t, http.StatusOK, status)
+	require.Equal(t, 1, len(*decks))
 }

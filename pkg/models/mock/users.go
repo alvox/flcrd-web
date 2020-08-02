@@ -18,6 +18,16 @@ var mockUser = &models.User{
 	},
 }
 
+var mockCredentials = &models.Credentials{
+	UserID:   "test_user_id",
+	Password: hashPassword("test_password"),
+	Token: models.Token{
+		AccessToken:     "test_access_token",
+		RefreshToken:    "test_refresh_token",
+		RefreshTokenExp: time.Now(),
+	},
+}
+
 type UserModel struct{}
 
 func (m *UserModel) Create(user *models.User, credentials *models.Credentials) (*string, error) {
@@ -51,8 +61,8 @@ func (m *UserModel) GetByEmail(email string) (*models.User, error) {
 	}
 }
 
-func (m *UserModel) UpdateRefreshToken(user *models.User) error {
-	switch user.ID {
+func (m *UserModel) UpdateRefreshToken(credentials *models.Credentials) error {
+	switch credentials.UserID {
 	case "test_user_id":
 		return nil
 	default:
@@ -66,6 +76,14 @@ func (m *UserModel) Update(user *models.User) error {
 
 func (m *UserModel) Delete(userID string) error {
 	return nil
+}
+
+func (m *UserModel) GetCredentials(userID string) (*models.Credentials, error) {
+	switch userID {
+	case "test_user_id":
+		return mockCredentials, nil
+	}
+	return nil, models.ErrNoRecord
 }
 
 func hashPassword(pwd string) string {

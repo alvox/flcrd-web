@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/url"
 	"testing"
@@ -42,18 +43,10 @@ func TestPaging(t *testing.T) {
 				},
 			}
 			page, offset, limit, err := extractPaging(r)
-			if err != nil {
-				t.Errorf("Unexpected error: %s", err)
-			}
-			if page != tt.wantPage {
-				t.Errorf("page; want: %d, got: %d", page, tt.wantPage)
-			}
-			if offset != tt.wantOffset {
-				t.Errorf("offset; want: %d, got: %d", offset, tt.wantOffset)
-			}
-			if limit != tt.wantLimit {
-				t.Errorf("limit; want: %d, got: %d", limit, tt.wantLimit)
-			}
+			require.Nil(t, err)
+			require.Equal(t, tt.wantPage, page)
+			require.Equal(t, tt.wantOffset, offset)
+			require.Equal(t, tt.wantLimit, limit)
 		})
 	}
 }

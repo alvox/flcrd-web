@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bytes"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"testing"
 )
@@ -20,24 +20,11 @@ func TestLogin_Positive(t *testing.T) {
 	if !valid {
 		t.Error()
 	}
-	if status != http.StatusOK {
-		t.Errorf("status: want 200; got %d", status)
-	}
-	if u.Email != "test_user_email@example.com" {
-		t.Errorf("email: want test_user_email@example.com; got %s", u.Email)
-	}
-	if u.Name != "test_user_name" {
-		t.Errorf("name: want test_user_name; got %s", u.Name)
-	}
-	if u.Token.RefreshToken == "" {
-		t.Errorf("refreshToken: empty")
-	}
-	if u.Token.AccessToken == "" {
-		t.Errorf("accessToken: empty")
-	}
-	if u.Password != "" {
-		t.Errorf("password: password should be empty; got %s", u.Password)
-	}
+	require.Equal(t, http.StatusOK, status)
+	require.Equal(t, "test_user_email@example.com", u.Email)
+	require.Equal(t, "test_user_name", u.Name)
+	require.NotEmpty(t, u.Token.RefreshToken)
+	require.NotEmpty(t, u.Token.AccessToken)
 }
 
 func TestLogin_EmptyRequest(t *testing.T) {
@@ -46,14 +33,9 @@ func TestLogin_EmptyRequest(t *testing.T) {
 	defer ts.Close()
 
 	status, _, resp := ts.post(t, "/v0/users/login", "")
-
-	if status != http.StatusBadRequest {
-		t.Errorf("status: want 400; got %d", status)
-	}
-	wr := `{"code":"004","message":"can't read request body"}`
-	if !bytes.Contains([]byte(wr), resp) {
-		t.Errorf("response: want %s; got %s", wr, string(resp))
-	}
+	wr := `{"code":"004","message":"can't read request"}`
+	require.Equal(t, http.StatusBadRequest, status)
+	require.Equal(t, []byte(wr), resp)
 }
 
 func TestLogin_UserNotFound(t *testing.T) {
@@ -66,14 +48,9 @@ func TestLogin_UserNotFound(t *testing.T) {
             "password": "123456"
             }`
 	status, _, resp := ts.post(t, "/v0/users/login", req)
-
-	if status != http.StatusUnauthorized {
-		t.Errorf("status: want 401; got %d", status)
-	}
 	wr := `{"code":"006","message":"email or password incorrect"}`
-	if !bytes.Contains([]byte(wr), resp) {
-		t.Errorf("response: want %s; got %s", wr, string(resp))
-	}
+	require.Equal(t, http.StatusUnauthorized, status)
+	require.Equal(t, []byte(wr), resp)
 }
 
 func TestLogin_InvalidPassword(t *testing.T) {
@@ -86,12 +63,7 @@ func TestLogin_InvalidPassword(t *testing.T) {
             "password": "123456"
             }`
 	status, _, resp := ts.post(t, "/v0/users/login", req)
-
-	if status != http.StatusUnauthorized {
-		t.Errorf("status: want 401; got %d", status)
-	}
 	wr := `{"code":"006","message":"email or password incorrect"}`
-	if !bytes.Contains([]byte(wr), resp) {
-		t.Errorf("response: want %s; got %s", wr, string(resp))
-	}
+	require.Equal(t, http.StatusUnauthorized, status)
+	require.Equal(t, []byte(wr), resp)
 }
