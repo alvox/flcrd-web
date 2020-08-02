@@ -10,21 +10,31 @@ type UserModel struct {
 	DB *sql.DB
 }
 
-// todo: wrap in transaction
 func (m *UserModel) Create(user *models.User, credentials *models.Credentials) (*string, error) {
+	tx, err := m.DB.Begin()
+	if err != nil {
+		return nil, err
+	}
 	stmt := `insert into flcrd.user (name, email, status) values ($1, $2, $3) returning id;`
 	var id string
-	err := m.DB.QueryRow(stmt, user.Name, user.Email, user.Status).Scan(&id)
+	err = tx.QueryRow(stmt, user.Name, user.Email, user.Status).Scan(&id)
 	if err != nil {
 		if err, ok := err.(*pq.Error); ok {
 			if "unique_violation" == err.Code.Name() {
+				_ = tx.Rollback()
 				return nil, models.ErrUniqueViolation
 			}
 		}
+		_ = tx.Rollback()
 		return nil, err
 	}
 	stmt = `insert into flcrd.credentials (user_id, password, refresh_token, refresh_token_exp) values ($1, $2, $3, $4);`
-	_, err = m.DB.Exec(stmt, id, credentials.Password, credentials.Token.RefreshToken, credentials.Token.RefreshTokenExp)
+	_, err = tx.Exec(stmt, id, credentials.Password, credentials.Token.RefreshToken, credentials.Token.RefreshTokenExp)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	err = tx.Commit()
 	if err != nil {
 		return nil, err
 	}
