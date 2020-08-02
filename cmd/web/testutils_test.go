@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -20,8 +19,6 @@ func newTestApp(t *testing.T) *application {
 		users:        &mock.UserModel{},
 		verification: &mock.VerificationModel{},
 		mailSender:   &MockMailSender{},
-		infoLog:      log.New(ioutil.Discard, "", 0),
-		errorLog:     log.New(ioutil.Discard, "", 0),
 	}
 }
 

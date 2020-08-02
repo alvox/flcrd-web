@@ -9,6 +9,7 @@ require (
 	github.com/jackc/pgconn v1.6.4
 	github.com/jackc/pgx/v4 v4.8.1
 	github.com/justinas/alice v0.0.0-20171023064455-03f45bd4b7da
+	github.com/rs/zerolog v1.19.0
 	github.com/stretchr/testify v1.6.1
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 )

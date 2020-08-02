@@ -5,8 +5,11 @@ import (
 	"alexanderpopov.me/flcrd/pkg/models/pg"
 	"context"
 	"flag"
+	"fmt"
+	"github.com/jackc/pgx/v4/log/zerologadapter"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"log"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"os"
 	"time"
@@ -49,11 +52,10 @@ type application struct {
 	mailSender interface {
 		SendConfirmation(string, string, string) (*SendMessageResponse, error)
 	}
-	infoLog  *log.Logger
-	errorLog *log.Logger
 }
 
 func main() {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	port := flag.String("port", ":5000", "Application port")
 	dsn := flag.String("dsn", "postgres://flcrd:flcrd@localhost/flcrd?sslmode=disable", "Postgres data source")
 	key := flag.String("appkey", "test-key", "Application key")
@@ -61,12 +63,9 @@ func main() {
 	mailKey := flag.String("mail_api_key", "", "API key to the email service")
 	flag.Parse()
 
-	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
-	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
-
 	db, err := connectDB(*dsn)
 	if err != nil {
-		errorLog.Fatal(err)
+		log.Fatal().Err(err)
 	}
 	app := &application{
 		decks:        &pg.DeckModel{DB: db},
@@ -77,22 +76,19 @@ func main() {
 			baseUrl: *mailUrl,
 			apiKey:  *mailKey,
 		},
-		infoLog:  infoLog,
-		errorLog: errorLog,
 	}
 
 	srv := &http.Server{
 		Addr:         *port,
-		ErrorLog:     errorLog,
 		Handler:      app.routes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
 	initJwt(*key)
-	infoLog.Printf("Starting server on %s port", *port)
+	log.Info().Msg(fmt.Sprintf("Starting server on %s port", *port))
 	err = srv.ListenAndServe()
-	errorLog.Fatal(err)
+	log.Fatal().Err(err)
 }
 
 func connectDB(dsn string) (*pgxpool.Pool, error) {
@@ -100,6 +96,7 @@ func connectDB(dsn string) (*pgxpool.Pool, error) {
 	if err != nil {
 		return nil, err
 	}
+	conf.ConnConfig.Logger = zerologadapter.NewLogger(zerolog.New(os.Stdout))
 	pool, err := pgxpool.ConnectConfig(context.Background(), conf)
 	if err != nil {
 		return nil, err

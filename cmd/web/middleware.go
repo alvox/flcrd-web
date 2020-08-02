@@ -2,13 +2,19 @@ package main
 
 import (
 	"context"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"strings"
 )
 
 func (app *application) logRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		app.infoLog.Printf("%s - %s %s %s", r.RemoteAddr, r.Proto, r.Method, r.URL.RequestURI())
+		log.Info().
+			Str("remote_address", r.RemoteAddr).
+			Str("proto", r.Proto).
+			Str("method", r.Method).
+			Str("uri", r.URL.RequestURI()).
+			Msg("REQUEST")
 		next.ServeHTTP(w, r)
 	})
 }

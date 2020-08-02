@@ -4,6 +4,7 @@ import (
 	"alexanderpopov.me/flcrd/pkg/models"
 	"encoding/json"
 	"fmt"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -14,16 +15,21 @@ func reply(w http.ResponseWriter, status int, obj interface{}) {
 	if obj != nil {
 		writeJsonResponse(w, obj)
 	}
+	log.Info().
+		Str("status", strconv.Itoa(status)).
+		Msg("RESPONSE")
 }
 
 func writeJsonResponse(w http.ResponseWriter, obj interface{}) {
 	out, err := json.Marshal(obj)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		log.Error().Err(err).Send()
 		return
 	}
 	_, err = w.Write(out)
 	if err != nil {
+		log.Error().Err(err).Send()
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }

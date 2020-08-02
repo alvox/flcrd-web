@@ -3,6 +3,7 @@ package main
 import (
 	"alexanderpopov.me/flcrd/pkg/models"
 	"github.com/gorilla/mux"
+	"github.com/rs/zerolog/log"
 	"net/http"
 )
 
@@ -246,15 +247,15 @@ func (app *application) sendConfirmation(userID, userName, email string) {
 	code := generateVerificationCode(userID)
 	c, err := app.verification.Create(code)
 	if err != nil {
-		app.errorLog.Println(err.Error())
+		log.Error().Err(err)
 		return
 	}
 	result, err := app.mailSender.SendConfirmation(email, userName, c)
 	if err != nil {
-		app.errorLog.Println(err)
+		log.Error().Err(err)
 		return
 	}
-	app.infoLog.Println(result)
+	log.Info().Str("ID", result.Id).Str("Message", result.Message).Msg("Email sent")
 }
 
 func (app *application) deleteUser(w http.ResponseWriter, r *http.Request) {
