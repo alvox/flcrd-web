@@ -2,7 +2,7 @@ package pg
 
 import (
 	"alexanderpopov.me/flcrd/pkg/models"
-	"github.com/lib/pq"
+	"github.com/jackc/pgconn"
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
@@ -55,8 +55,8 @@ func TestUserModel_Create_Email_Exists(t *testing.T) {
 	c := &models.Credentials{}
 	_, err := model.Create(u, c)
 	assert.NotNil(t, err, "expect unique constraint violation")
-	if err, ok := err.(*pq.Error); ok {
-		assert.Equal(t, "unique_violation", err.Code.Name(), "expect unique constraint violation")
+	if err, ok := err.(*pgconn.PgError); ok {
+		assert.Equal(t, "user_email_idx", err.ConstraintName, "expect unique constraint violation")
 	}
 }
 

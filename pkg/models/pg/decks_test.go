@@ -2,7 +2,6 @@ package pg
 
 import (
 	"alexanderpopov.me/flcrd/pkg/models"
-	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"

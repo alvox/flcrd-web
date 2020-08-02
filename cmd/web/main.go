@@ -3,9 +3,9 @@ package main
 import (
 	"alexanderpopov.me/flcrd/pkg/models"
 	"alexanderpopov.me/flcrd/pkg/models/pg"
-	"database/sql"
+	"context"
 	"flag"
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"log"
 	"net/http"
 	"os"
@@ -95,13 +95,14 @@ func main() {
 	errorLog.Fatal(err)
 }
 
-func connectDB(dsn string) (*sql.DB, error) {
-	db, err := sql.Open("postgres", dsn)
+func connectDB(dsn string) (*pgxpool.Pool, error) {
+	conf, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
 		return nil, err
 	}
-	if err = db.Ping(); err != nil {
+	pool, err := pgxpool.ConnectConfig(context.Background(), conf)
+	if err != nil {
 		return nil, err
 	}
-	return db, nil
+	return pool, nil
 }

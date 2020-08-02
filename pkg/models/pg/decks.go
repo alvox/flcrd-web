@@ -2,24 +2,26 @@ package pg
 
 import (
 	"alexanderpopov.me/flcrd/pkg/models"
-	"database/sql"
+	"context"
 	"fmt"
-	"github.com/lib/pq"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"strings"
 )
 
 type DeckModel struct {
-	DB *sql.DB
+	DB *pgxpool.Pool
 }
 
 func (m *DeckModel) Create(name, description, createdBy string, public bool) (*string, error) {
 	stmt := `insert into flcrd.deck (name, description, created_by, public, search_tokens) 
              values ($1, $2, $3, $4, to_tsvector($5)) returning id;`
 	var id string
-	err := m.DB.QueryRow(stmt, name, description, createdBy, public, fmt.Sprint(name, " ", description)).Scan(&id)
+	err := m.DB.QueryRow(context.Background(), stmt, name, description, createdBy, public, fmt.Sprint(name, " ", description)).Scan(&id)
 	if err != nil {
-		if err, ok := err.(*pq.Error); ok {
-			if "unique_violation" == err.Code.Name() {
+		if err, ok := err.(*pgconn.PgError); ok {
+			if "deck_name_user_idx" == err.ConstraintName {
 				return nil, models.ErrUniqueViolation
 			}
 		}
@@ -32,10 +34,10 @@ func (m *DeckModel) Update(deck *models.Deck) error {
 	stmt := `update flcrd.deck set name = $1, description = $2, public = $3, 
                  search_tokens = to_tsvector($4) 
              where id = $5;`
-	r, err := m.DB.Exec(stmt, deck.Name, deck.Description, deck.Public, fmt.Sprint(deck.Name, " ", deck.Description), deck.ID)
+	r, err := m.DB.Exec(context.Background(), stmt, deck.Name, deck.Description, deck.Public, fmt.Sprint(deck.Name, " ", deck.Description), deck.ID)
 	if err != nil {
-		if err, ok := err.(*pq.Error); ok {
-			if "unique_violation" == err.Code.Name() {
+		if err, ok := err.(*pgconn.PgError); ok {
+			if "deck_name_user_idx" == err.ConstraintName {
 				return models.ErrUniqueViolation
 			}
 		}
@@ -55,9 +57,9 @@ func (m *DeckModel) Get(id string) (*models.Deck, error) {
              left join flcrd.user u on u.id = d.created_by
              where d.id = $1;`
 	d := &models.Deck{}
-	err := m.DB.QueryRow(stmt, id).Scan(&d.ID, &d.Name, &d.Description, &d.Created, &d.Public,
+	err := m.DB.QueryRow(context.Background(), stmt, id).Scan(&d.ID, &d.Name, &d.Description, &d.Created, &d.Public,
 		&d.CardsCount, &d.CreatedBy.ID, &d.CreatedBy.Name)
-	if err == sql.ErrNoRows {
+	if err == pgx.ErrNoRows {
 		return nil, models.ErrNoRecord
 	}
 	if err != nil {
@@ -70,7 +72,7 @@ func (m *DeckModel) Get(id string) (*models.Deck, error) {
 func (m *DeckModel) GetPublic(offset, limit int) ([]*models.Deck, int, error) {
 	stmt := `select count(*) from flcrd.deck where public = true;`
 	var total int
-	err := m.DB.QueryRow(stmt).Scan(&total)
+	err := m.DB.QueryRow(context.Background(), stmt).Scan(&total)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -80,7 +82,7 @@ func (m *DeckModel) GetPublic(offset, limit int) ([]*models.Deck, int, error) {
              from flcrd.deck d
              left join flcrd.user u on u.id = d.created_by
              where d.public = true order by d.created offset $1 limit $2;`
-	rows, err := m.DB.Query(stmt, offset, limit)
+	rows, err := m.DB.Query(context.Background(), stmt, offset, limit)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -95,7 +97,7 @@ func (m *DeckModel) GetForUser(userID string) ([]*models.Deck, error) {
              from flcrd.deck d
              left join flcrd.user u on u.id = d.created_by
              where u.id = $1 order by d.created;`
-	rows, err := m.DB.Query(stmt, userID)
+	rows, err := m.DB.Query(context.Background(), stmt, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +106,7 @@ func (m *DeckModel) GetForUser(userID string) ([]*models.Deck, error) {
 
 func (m *DeckModel) Delete(id string) error {
 	stmt := `delete from flcrd.deck where id = $1;`
-	r, err := m.DB.Exec(stmt, id)
+	r, err := m.DB.Exec(context.Background(), stmt, id)
 	if err != nil {
 		return err
 	}
@@ -122,14 +124,14 @@ func (m *DeckModel) Search(terms []string) ([]*models.Deck, error) {
              from flcrd.deck d
              left join flcrd.user u on u.id = d.created_by
              where d.public = true and d.search_tokens @@ to_tsquery($1) order by d.created;`
-	rows, err := m.DB.Query(stmt, t)
+	rows, err := m.DB.Query(context.Background(), stmt, t)
 	if err != nil {
 		return nil, err
 	}
 	return read(rows)
 }
 
-func read(rows *sql.Rows) ([]*models.Deck, error) {
+func read(rows pgx.Rows) ([]*models.Deck, error) {
 	defer rows.Close()
 	decks := []*models.Deck{}
 	var err error

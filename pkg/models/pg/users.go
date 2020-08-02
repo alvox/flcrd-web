@@ -2,39 +2,41 @@ package pg
 
 import (
 	"alexanderpopov.me/flcrd/pkg/models"
-	"database/sql"
-	"github.com/lib/pq"
+	"context"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type UserModel struct {
-	DB *sql.DB
+	DB *pgxpool.Pool
 }
 
 func (m *UserModel) Create(user *models.User, credentials *models.Credentials) (*string, error) {
-	tx, err := m.DB.Begin()
+	ctx := context.Background()
+	tx, err := m.DB.Begin(ctx)
 	if err != nil {
 		return nil, err
 	}
 	stmt := `insert into flcrd.user (name, email, status) values ($1, $2, $3) returning id;`
 	var id string
-	err = tx.QueryRow(stmt, user.Name, user.Email, user.Status).Scan(&id)
+	err = tx.QueryRow(ctx, stmt, user.Name, user.Email, user.Status).Scan(&id)
 	if err != nil {
-		if err, ok := err.(*pq.Error); ok {
-			if "unique_violation" == err.Code.Name() {
-				_ = tx.Rollback()
+		_ = tx.Rollback(ctx)
+		if err, ok := err.(*pgconn.PgError); ok {
+			if "user_email_idx" == err.ConstraintName {
 				return nil, models.ErrUniqueViolation
 			}
 		}
-		_ = tx.Rollback()
 		return nil, err
 	}
 	stmt = `insert into flcrd.credentials (user_id, password, refresh_token, refresh_token_exp) values ($1, $2, $3, $4);`
-	_, err = tx.Exec(stmt, id, credentials.Password, credentials.Token.RefreshToken, credentials.Token.RefreshTokenExp)
+	_, err = tx.Exec(ctx, stmt, id, credentials.Password, credentials.Token.RefreshToken, credentials.Token.RefreshTokenExp)
 	if err != nil {
-		_ = tx.Rollback()
+		_ = tx.Rollback(ctx)
 		return nil, err
 	}
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -48,9 +50,9 @@ func (m *UserModel) Get(userID string) (*models.User, error) {
              left join flcrd.credentials c on c.user_id = u.id
              where u.id = $1;`
 	u := &models.User{}
-	err := m.DB.QueryRow(stmt, userID).Scan(&u.ID, &u.Name, &u.Email, &u.Status, &u.Created,
+	err := m.DB.QueryRow(context.Background(), stmt, userID).Scan(&u.ID, &u.Name, &u.Email, &u.Status, &u.Created,
 		&u.Token.RefreshToken, &u.Token.RefreshTokenExp)
-	if err == sql.ErrNoRows {
+	if err == pgx.ErrNoRows {
 		return nil, models.ErrNoRecord
 	}
 	if err != nil {
@@ -71,8 +73,8 @@ func (m *UserModel) GetProfile(userID string) (*models.User, error) {
     left join flcrd.deck d on d.created_by = u.id
     where u.id = $1 group by u.id;`
 	u := &models.User{}
-	err := m.DB.QueryRow(stmt, userID).Scan(&u.ID, &u.Name, &u.Email, &u.Status, &u.Stats.DecksCount, &u.Stats.CardsCount)
-	if err == sql.ErrNoRows {
+	err := m.DB.QueryRow(context.Background(), stmt, userID).Scan(&u.ID, &u.Name, &u.Email, &u.Status, &u.Stats.DecksCount, &u.Stats.CardsCount)
+	if err == pgx.ErrNoRows {
 		return nil, models.ErrNoRecord
 	}
 	if err != nil {
@@ -84,8 +86,8 @@ func (m *UserModel) GetProfile(userID string) (*models.User, error) {
 func (m *UserModel) GetByEmail(email string) (*models.User, error) {
 	stmt := `select id, name, email, status, created from flcrd.user where email = $1;`
 	u := &models.User{}
-	err := m.DB.QueryRow(stmt, email).Scan(&u.ID, &u.Name, &u.Email, &u.Status, &u.Created)
-	if err == sql.ErrNoRows {
+	err := m.DB.QueryRow(context.Background(), stmt, email).Scan(&u.ID, &u.Name, &u.Email, &u.Status, &u.Created)
+	if err == pgx.ErrNoRows {
 		return nil, models.ErrNoRecord
 	}
 	if err != nil {
@@ -97,7 +99,7 @@ func (m *UserModel) GetByEmail(email string) (*models.User, error) {
 
 func (m *UserModel) Update(user *models.User) error {
 	stmt := `update flcrd.user set name = $1, email = $2, status = $3 where id = $4;`
-	r, err := m.DB.Exec(stmt, user.Name, user.Email, user.Status, user.ID)
+	r, err := m.DB.Exec(context.Background(), stmt, user.Name, user.Email, user.Status, user.ID)
 	if err != nil {
 		return err
 	}
@@ -108,30 +110,31 @@ func (m *UserModel) Update(user *models.User) error {
 }
 
 func (m *UserModel) Delete(userID string) error {
-	tx, err := m.DB.Begin()
+	ctx := context.Background()
+	tx, err := m.DB.Begin(ctx)
 	if err != nil {
 		return err
 	}
-	r, err := tx.Exec(`delete from flcrd.user where id = $1;`, userID)
+	r, err := tx.Exec(ctx, `delete from flcrd.user where id = $1;`, userID)
 	if err != nil {
-		_ = tx.Rollback()
+		_ = tx.Rollback(ctx)
 		return err
 	}
 	if err := rowsCnt(r); err != nil {
-		_ = tx.Rollback()
+		_ = tx.Rollback(ctx)
 		return err
 	}
-	_, err = tx.Exec(`delete from flcrd.credentials where user_id = $1;`, userID)
+	_, err = tx.Exec(ctx, `delete from flcrd.credentials where user_id = $1;`, userID)
 	if err != nil {
-		_ = tx.Rollback()
+		_ = tx.Rollback(ctx)
 		return err
 	}
-	_, err = tx.Exec(`delete from flcrd.deck where created_by = $1;`, userID)
+	_, err = tx.Exec(ctx, `delete from flcrd.deck where created_by = $1;`, userID)
 	if err != nil {
-		_ = tx.Rollback()
+		_ = tx.Rollback(ctx)
 		return err
 	}
-	return tx.Commit()
+	return tx.Commit(ctx)
 }
 
 // Credentials
@@ -141,8 +144,8 @@ func (m *UserModel) GetCredentials(userID string) (*models.Credentials, error) {
              from flcrd.credentials 
              where user_id = $1;`
 	c := &models.Credentials{}
-	err := m.DB.QueryRow(stmt, userID).Scan(&c.UserID, &c.Password, &c.Token.RefreshToken, &c.Token.RefreshTokenExp)
-	if err == sql.ErrNoRows {
+	err := m.DB.QueryRow(context.Background(), stmt, userID).Scan(&c.UserID, &c.Password, &c.Token.RefreshToken, &c.Token.RefreshTokenExp)
+	if err == pgx.ErrNoRows {
 		return nil, models.ErrNoRecord
 	}
 	if err != nil {
@@ -154,7 +157,7 @@ func (m *UserModel) GetCredentials(userID string) (*models.Credentials, error) {
 
 func (m *UserModel) UpdateRefreshToken(c *models.Credentials) error {
 	stmt := `update flcrd.credentials set refresh_token = $1, refresh_token_exp = $2 where user_id = $3;`
-	r, err := m.DB.Exec(stmt, c.Token.RefreshToken, c.Token.RefreshTokenExp, c.UserID)
+	r, err := m.DB.Exec(context.Background(), stmt, c.Token.RefreshToken, c.Token.RefreshTokenExp, c.UserID)
 	if err != nil {
 		return err
 	}
