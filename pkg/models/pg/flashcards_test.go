@@ -2,21 +2,21 @@ package pg
 
 import (
 	"alexanderpopov.me/flcrd/pkg/models"
-	"reflect"
+	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
 
 var testFlashcards = [2]*models.Flashcard{
 	{
-		ID:      "test_flashcard_id_1",
-		DeckID:  "test_deck_id_1",
+		ID:      "9f814806-e2df-4598-a323-1380d47b9c35",
+		DeckID:  "9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e",
 		Front:   "Test Front 1 1",
 		Rear:    "Test Rear 1 1",
 		Created: time.Date(2019, 1, 1, 10, 0, 0, 0, time.UTC),
 	}, {
-		ID:      "test_flashcard_id_5",
-		DeckID:  "test_deck_id_2",
+		ID:      "a5f65e8d-ca03-4d3e-978e-f5a612881231",
+		DeckID:  "2601da50-56a6-41a1-a92e-5624598a7d19",
 		Front:   "Test Front 2 2",
 		Rear:    "Test Rear 2 2",
 		Created: time.Date(2019, 5, 5, 15, 55, 0, 0, time.UTC),
@@ -32,22 +32,18 @@ func TestFlashcardModel_Create_Positive(t *testing.T) {
 	model := FlashcardModel{db}
 
 	c := &models.Flashcard{
-		DeckID: "test_deck_id_1",
+		DeckID: "9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e",
 		Front:  "Test Front",
 		Rear:   "Test Rear",
 	}
 
 	id, err := model.Create(c)
-	if err != nil {
-		t.Errorf("unexpected error when creating flashcard: %s", err)
-	}
-	flashcard, err := model.Get("test_deck_id_1", *id)
-	if err != nil {
-		t.Errorf("unexpected error when reading test flashcard: %s", err)
-	}
-	checkField("test_deck_id_1", flashcard.DeckID, t)
-	checkField("Test Front", flashcard.Front, t)
-	checkField("Test Rear", flashcard.Rear, t)
+	require.Nil(t, err)
+	flashcard, err := model.Get("9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e", *id)
+	require.Nil(t, err)
+	require.Equal(t, "9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e", flashcard.DeckID)
+	require.Equal(t, "Test Front", flashcard.Front)
+	require.Equal(t, "Test Rear", flashcard.Rear)
 }
 
 func TestFlashcardModel_Create_InvalidDeck(t *testing.T) {
@@ -58,14 +54,12 @@ func TestFlashcardModel_Create_InvalidDeck(t *testing.T) {
 	defer teardown()
 	model := FlashcardModel{db}
 	c := &models.Flashcard{
-		DeckID: "test_deck_id_5",
+		DeckID: "7af65126-d46c-4797-a329-09d283acc664",
 		Front:  "Test Front",
 		Rear:   "Test Rear",
 	}
 	_, err := model.Create(c)
-	if err != models.ErrDeckNotFound {
-		t.Errorf("unexpected error: want %s; got %s", models.ErrDeckNotFound, err)
-	}
+	require.Equal(t, models.ErrDeckNotFound, err)
 }
 
 func TestFlashcardModel_Get(t *testing.T) {
@@ -81,29 +75,29 @@ func TestFlashcardModel_Get(t *testing.T) {
 	}{
 		{
 			name:          "Flashcard 1",
-			deckId:        "test_deck_id_1",
-			flashcardId:   "test_flashcard_id_1",
+			deckId:        "9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e",
+			flashcardId:   "9f814806-e2df-4598-a323-1380d47b9c35",
 			wantFlashcard: testFlashcards[0],
 			wantError:     nil,
 		},
 		{
 			name:          "Flashcard 5",
-			deckId:        "test_deck_id_2",
-			flashcardId:   "test_flashcard_id_5",
+			deckId:        "2601da50-56a6-41a1-a92e-5624598a7d19",
+			flashcardId:   "a5f65e8d-ca03-4d3e-978e-f5a612881231",
 			wantFlashcard: testFlashcards[1],
 			wantError:     nil,
 		},
 		{
 			name:          "Non-existent Deck ID",
-			deckId:        "test_deck_id_5",
-			flashcardId:   "test_flashcard_id_1",
+			deckId:        "7af65126-d46c-4797-a329-09d283acc664",
+			flashcardId:   "9f814806-e2df-4598-a323-1380d47b9c35",
 			wantFlashcard: nil,
 			wantError:     models.ErrNoRecord,
 		},
 		{
 			name:          "Non-existent Flashcard ID",
-			deckId:        "test_deck_id_1",
-			flashcardId:   "test_flashcard_id_10",
+			deckId:        "9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e",
+			flashcardId:   "7af65126-d46c-4797-a329-09d283acc664",
 			wantFlashcard: nil,
 			wantError:     models.ErrNoRecord,
 		},
@@ -114,12 +108,8 @@ func TestFlashcardModel_Get(t *testing.T) {
 			defer teardown()
 			model := FlashcardModel{db}
 			flashcard, err := model.Get(tt.deckId, tt.flashcardId)
-			if err != tt.wantError {
-				t.Errorf("want %v; got %s", tt.wantError, err)
-			}
-			if !reflect.DeepEqual(flashcard, tt.wantFlashcard) {
-				t.Errorf("want %v; got %v", tt.wantFlashcard, flashcard)
-			}
+			require.Equal(t, tt.wantError, err)
+			require.Equal(t, tt.wantFlashcard, flashcard)
 		})
 	}
 }
@@ -135,17 +125,17 @@ func TestFlashcardModel_GetPublic_Positive(t *testing.T) {
 	}{
 		{
 			name:      "Deck 1",
-			deckId:    "test_deck_id_1",
+			deckId:    "9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e",
 			wantCount: 0,
 		},
 		{
 			name:      "Deck 2",
-			deckId:    "test_deck_id_2",
+			deckId:    "2601da50-56a6-41a1-a92e-5624598a7d19",
 			wantCount: 2,
 		},
 		{
 			name:      "Non-existent Deck",
-			deckId:    "test_deck_id_5",
+			deckId:    "7af65126-d46c-4797-a329-09d283acc664",
 			wantCount: 0,
 		},
 	}
@@ -155,12 +145,8 @@ func TestFlashcardModel_GetPublic_Positive(t *testing.T) {
 			defer teardown()
 			model := FlashcardModel{db}
 			flashcards, err := model.GetPublic(tt.deckId)
-			if err != nil {
-				t.Errorf("unexpected error while reading flashcards: %s", err)
-			}
-			if tt.wantCount != len(flashcards) {
-				t.Errorf("want %d; got %d", tt.wantCount, len(flashcards))
-			}
+			require.Nil(t, err)
+			require.Equal(t, tt.wantCount, len(flashcards))
 		})
 	}
 }
@@ -172,13 +158,9 @@ func TestFlashcardModel_GetForUser(t *testing.T) {
 	db, teardown := newTestDB(t)
 	defer teardown()
 	model := FlashcardModel{db}
-	flashcards, err := model.GetForUser("test_deck_id_1", "testuser_id_1")
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
-	}
-	if len(flashcards) != 3 {
-		t.Errorf("expected %d cards; got %d", 3, len(flashcards))
-	}
+	flashcards, err := model.GetForUser("9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e", "40afbc9a-27e3-4b38-97f9-2930b8790a9f")
+	require.Nil(t, err)
+	require.Equal(t, 3, len(flashcards))
 }
 
 func TestFlashcardModel_Update_Positive(t *testing.T) {
@@ -192,16 +174,10 @@ func TestFlashcardModel_Update_Positive(t *testing.T) {
 	flashcard.Front = "Updated Front"
 	flashcard.Rear = "Updated Rear"
 	err := model.Update(flashcard)
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
-	}
-	updated, err := model.Get("test_deck_id_1", "test_flashcard_id_1")
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
-	}
-	if !reflect.DeepEqual(flashcard, updated) {
-		t.Errorf("want %v; got %v", flashcard, updated)
-	}
+	require.Nil(t, err)
+	updated, err := model.Get("9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e", "9f814806-e2df-4598-a323-1380d47b9c35")
+	require.Nil(t, err)
+	require.Equal(t, flashcard, updated)
 }
 
 func TestFlashcardModel_UpdateNonExistentDeck(t *testing.T) {
@@ -212,16 +188,14 @@ func TestFlashcardModel_UpdateNonExistentDeck(t *testing.T) {
 	defer teardown()
 	model := FlashcardModel{db}
 	flashcard := &models.Flashcard{
-		ID:      "test_flashcard_id_1",
-		DeckID:  "test_deck_id_5",
+		ID:      "9f814806-e2df-4598-a323-1380d47b9c35",
+		DeckID:  "7af65126-d46c-4797-a329-09d283acc664",
 		Front:   "Updated 1",
 		Rear:    "Updated Description 1",
 		Created: time.Date(2019, 1, 1, 10, 0, 0, 0, time.UTC),
 	}
 	err := model.Update(flashcard)
-	if err != models.ErrDeckNotFound {
-		t.Errorf("unexpected error: want %s; got %s", models.ErrDeckNotFound, err)
-	}
+	require.Equal(t, models.ErrDeckNotFound, err)
 }
 
 func TestFlashcardModel_UpdateNonExistentFlashcard(t *testing.T) {
@@ -232,16 +206,14 @@ func TestFlashcardModel_UpdateNonExistentFlashcard(t *testing.T) {
 	defer teardown()
 	model := FlashcardModel{db}
 	flashcard := &models.Flashcard{
-		ID:      "test_flashcard_id_10",
-		DeckID:  "test_deck_id_1",
+		ID:      "7af65126-d46c-4797-a329-09d283acc664",
+		DeckID:  "9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e",
 		Front:   "Updated 1",
 		Rear:    "Updated Description 1",
 		Created: time.Date(2019, 1, 1, 10, 0, 0, 0, time.UTC),
 	}
 	err := model.Update(flashcard)
-	if err != models.ErrNoRecord {
-		t.Errorf("unexpected error: want %s; got %s", models.ErrNoRecord, err)
-	}
+	require.Equal(t, models.ErrNoRecord, err)
 }
 
 func TestFlashcardModel_Delete_Positive(t *testing.T) {
@@ -251,14 +223,10 @@ func TestFlashcardModel_Delete_Positive(t *testing.T) {
 	db, teardown := newTestDB(t)
 	defer teardown()
 	model := FlashcardModel{db}
-	err := model.Delete("test_deck_id_1", "test_flashcard_id_1")
-	if err != nil {
-		t.Errorf("failed to delete flashcard: %s", err)
-	}
-	_, err = model.Get("test_deck_id_1", "test_flashcard_id_1")
-	if err != models.ErrNoRecord {
-		t.Error("flashcard hasn't been deleted in delete test")
-	}
+	err := model.Delete("9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e", "9f814806-e2df-4598-a323-1380d47b9c35")
+	require.Nil(t, err)
+	_, err = model.Get("9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e", "9f814806-e2df-4598-a323-1380d47b9c35")
+	require.Equal(t, models.ErrNoRecord, err)
 }
 
 func TestFlashcardModel_Delete_NonExistent(t *testing.T) {
@@ -268,14 +236,6 @@ func TestFlashcardModel_Delete_NonExistent(t *testing.T) {
 	db, teardown := newTestDB(t)
 	defer teardown()
 	model := FlashcardModel{db}
-	err := model.Delete("test_deck_id_5", "test_flashcard_id_1")
-	if err != models.ErrNoRecord {
-		t.Errorf("unexpected error: want %s; got %s", models.ErrNoRecord, err)
-	}
-}
-
-func checkField(expected, actual string, t *testing.T) {
-	if expected != actual {
-		t.Errorf("want %s; got %s", expected, actual)
-	}
+	err := model.Delete("7af65126-d46c-4797-a329-09d283acc664", "9f814806-e2df-4598-a323-1380d47b9c35")
+	require.Equal(t, models.ErrNoRecord, err)
 }

@@ -3,43 +3,43 @@ package pg
 import (
 	"alexanderpopov.me/flcrd/pkg/models"
 	_ "github.com/lib/pq"
-	"reflect"
+	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
 
 var testDecks = [3]*models.Deck{
 	{
-		ID:          "test_deck_id_1",
+		ID:          "9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e",
 		Name:        "Test Name 1",
 		Description: "Test Description 1",
 		Created:     time.Date(2019, 1, 1, 10, 0, 0, 0, time.UTC),
 		Public:      false,
 		CardsCount:  3,
 		CreatedBy: models.DeckCreator{
-			ID:   "testuser_id_1",
+			ID:   "40afbc9a-27e3-4b38-97f9-2930b8790a9f",
 			Name: "Testuser1",
 		},
 	}, {
-		ID:          "test_deck_id_2",
+		ID:          "2601da50-56a6-41a1-a92e-5624598a7d19",
 		Name:        "Test Name 2",
 		Description: "Test Description 2",
 		Created:     time.Date(2019, 2, 2, 12, 22, 0, 0, time.UTC),
 		Public:      true,
 		CardsCount:  2,
 		CreatedBy: models.DeckCreator{
-			ID:   "testuser_id_2",
+			ID:   "dd4a5e3a-4d95-44c1-8aa3-e29fa9a29570",
 			Name: "Testuser2",
 		},
 	}, {
-		ID:          "test_deck_id_3",
+		ID:          "4735bdb2-45a5-42d9-a6d4-6db29787b5f1",
 		Name:        "Test Name 3",
 		Description: "Test Description 3",
 		Created:     time.Date(2019, 3, 3, 12, 22, 0, 0, time.UTC),
 		Public:      true,
 		CardsCount:  0,
 		CreatedBy: models.DeckCreator{
-			ID:   "testuser_id_1",
+			ID:   "40afbc9a-27e3-4b38-97f9-2930b8790a9f",
 			Name: "Testuser1",
 		},
 	},
@@ -53,20 +53,14 @@ func TestDeckModel_Create_Positive(t *testing.T) {
 	defer teardown()
 	model := DeckModel{db}
 
-	id, err := model.Create("Test Deck", "Deck, created from test", "testuser_id_1", true)
-	if err != nil {
-		t.Errorf("failed to create new deck: %s", err.Error())
-	}
+	id, err := model.Create("Test Deck", "Deck, created from test", "40AFBC9A-27E3-4B38-97F9-2930B8790A9F", true)
+	require.Nil(t, err)
+	require.NotNil(t, id)
+
 	deck, err := model.Get(*id)
-	if err != nil {
-		t.Errorf("failed to read created test deck: %s", err.Error())
-	}
-	if deck.Name != "Test Deck" {
-		t.Errorf("invalid deck name: %s", deck.Name)
-	}
-	if deck.Description != "Deck, created from test" {
-		t.Errorf("invalid deck description: %s", deck.Description)
-	}
+	require.Nil(t, err)
+	require.Equal(t, "Test Deck", deck.Name, "invalid deck name")
+	require.Equal(t, "Deck, created from test", deck.Description, "invalid deck description")
 }
 
 func TestDeckModel_Get(t *testing.T) {
@@ -81,19 +75,19 @@ func TestDeckModel_Get(t *testing.T) {
 	}{
 		{
 			name:      "Deck 1",
-			deckId:    "test_deck_id_1",
+			deckId:    "9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e",
 			wantDeck:  testDecks[0],
 			wantError: nil,
 		},
 		{
 			name:      "Deck 2",
-			deckId:    "test_deck_id_2",
+			deckId:    "2601da50-56a6-41a1-a92e-5624598a7d19",
 			wantDeck:  testDecks[1],
 			wantError: nil,
 		},
 		{
 			name:      "Non-existent ID",
-			deckId:    "test_deck_id_5",
+			deckId:    "7af65126-d46c-4797-a329-09d283acc664",
 			wantDeck:  nil,
 			wantError: models.ErrNoRecord,
 		},
@@ -104,12 +98,8 @@ func TestDeckModel_Get(t *testing.T) {
 			defer teardown()
 			model := DeckModel{db}
 			deck, err := model.Get(tt.deckId)
-			if err != tt.wantError {
-				t.Errorf("want %v; got %s", tt.wantError, err)
-			}
-			if !reflect.DeepEqual(deck, tt.wantDeck) {
-				t.Errorf("want %v; got %v", tt.wantDeck, deck)
-			}
+			require.Equal(t, tt.wantError, err)
+			require.Equal(t, tt.wantDeck, deck)
 		})
 	}
 }
@@ -125,17 +115,17 @@ func TestDeckModel_GetForUser(t *testing.T) {
 	}{
 		{
 			name:      "User 1",
-			userId:    "testuser_id_1",
+			userId:    "40afbc9a-27e3-4b38-97f9-2930b8790a9f",
 			wantDecks: []*models.Deck{testDecks[0], testDecks[2]},
 		},
 		{
 			name:      "User 2",
-			userId:    "testuser_id_2",
+			userId:    "dd4a5e3a-4d95-44c1-8aa3-e29fa9a29570",
 			wantDecks: []*models.Deck{testDecks[1]},
 		},
 		{
 			name:      "Non-existent user",
-			userId:    "non-existing-testuser",
+			userId:    "7af65126-d46c-4797-a329-09d283acc664",
 			wantDecks: []*models.Deck{},
 		},
 	}
@@ -145,13 +135,9 @@ func TestDeckModel_GetForUser(t *testing.T) {
 			defer teardown()
 			model := DeckModel{db}
 			decks, err := model.GetForUser(tt.userId)
-			if err != nil {
-				t.Errorf("unexpected error: %s", err)
-			}
+			require.Nil(t, err)
 			for i, deck := range tt.wantDecks {
-				if !reflect.DeepEqual(deck, decks[i]) {
-					t.Errorf("want %v; got %v", deck, decks[i])
-				}
+				require.Equal(t, decks[i], deck)
 			}
 		})
 	}
@@ -165,18 +151,10 @@ func TestDeckModel_GetPublic_Positive(t *testing.T) {
 	defer teardown()
 	model := DeckModel{db}
 	decks, total, err := model.GetPublic(0, 5)
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
-	}
-	if len(decks) != 2 {
-		t.Errorf("unexpected collection size: want %d, got %d", 1, len(decks))
-	}
-	if !reflect.DeepEqual(testDecks[1], decks[0]) {
-		t.Errorf("want %v; got %v", testDecks[1], decks[0])
-	}
-	if total != 2 {
-		t.Errorf("unexpected total: want %d, got %d", 2, total)
-	}
+	require.Nil(t, err)
+	require.Equal(t, 2, len(decks))
+	require.Equal(t, decks[0], testDecks[1])
+	require.Equal(t, 2, total)
 }
 
 func TestDeckModel_Update_Positive(t *testing.T) {
@@ -190,16 +168,10 @@ func TestDeckModel_Update_Positive(t *testing.T) {
 	deck.Name = "Updated name"
 	deck.Description = "Updated description"
 	err := model.Update(deck)
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
-	}
-	updated, err := model.Get("test_deck_id_1")
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
-	}
-	if !reflect.DeepEqual(deck, updated) {
-		t.Errorf("want %v; got %v", deck, updated)
-	}
+	require.Nil(t, err)
+	updated, err := model.Get("9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e")
+	require.Nil(t, err)
+	require.Equal(t, deck, updated)
 }
 
 func TestDeckModel_Update_NonExistent(t *testing.T) {
@@ -210,15 +182,13 @@ func TestDeckModel_Update_NonExistent(t *testing.T) {
 	defer teardown()
 	model := DeckModel{db}
 	deck := &models.Deck{
-		ID:          "test_deck_id_5",
+		ID:          "7af65126-d46c-4797-a329-09d283acc664",
 		Name:        "Updated 1",
 		Description: "Updated Description 1",
 		Created:     time.Date(2019, 1, 1, 10, 0, 0, 0, time.UTC),
 	}
 	err := model.Update(deck)
-	if err != models.ErrNoRecord {
-		t.Errorf("unexpected error: want %s; got %s", models.ErrNoRecord, err)
-	}
+	require.Equal(t, models.ErrNoRecord, err)
 }
 
 func TestDeckModel_Delete_Positive(t *testing.T) {
@@ -228,14 +198,10 @@ func TestDeckModel_Delete_Positive(t *testing.T) {
 	db, teardown := newTestDB(t)
 	defer teardown()
 	model := DeckModel{db}
-	err := model.Delete("test_deck_id_1")
-	if err != nil {
-		t.Errorf("failed to delete deck: %s", err)
-	}
-	_, err = model.Get("test_deck_id_1")
-	if err != models.ErrNoRecord {
-		t.Error("deck hasn't been deleted in delete test")
-	}
+	err := model.Delete("9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e")
+	require.Nil(t, err)
+	_, err = model.Get("9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e")
+	require.Equal(t, models.ErrNoRecord, err)
 }
 
 func TestDeckModel_Delete_NonExistent(t *testing.T) {
@@ -245,10 +211,8 @@ func TestDeckModel_Delete_NonExistent(t *testing.T) {
 	db, teardown := newTestDB(t)
 	defer teardown()
 	model := DeckModel{db}
-	err := model.Delete("test_deck_id_5")
-	if err != models.ErrNoRecord {
-		t.Errorf("unexpected error: want %s; got %s", models.ErrNoRecord, err)
-	}
+	err := model.Delete("7af65126-d46c-4797-a329-09d283acc664")
+	require.Equal(t, models.ErrNoRecord, err)
 }
 
 func TestDeckModel_Search(t *testing.T) {
@@ -287,12 +251,8 @@ func TestDeckModel_Search(t *testing.T) {
 			defer teardown()
 			model := DeckModel{db}
 			decks, err := model.Search(tt.terms)
-			if err != nil {
-				t.Errorf("unexpected error: %s", err)
-			}
-			if len(decks) != tt.wantLen {
-				t.Errorf("unexpected collection size: want %d, got %d", tt.wantLen, len(decks))
-			}
+			require.Nil(t, err)
+			require.Equal(t, tt.wantLen, len(decks))
 		})
 	}
 }

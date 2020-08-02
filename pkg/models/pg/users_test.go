@@ -89,7 +89,7 @@ func TestUserModel_Get(t *testing.T) {
 		},
 		{
 			name:     "Non-existent user",
-			userId:   "4735BDB2-45A5-42D9-A6D4-6DB29787B5F1",
+			userId:   "4735bdb2-45a5-42d9-a6d4-6db29787b5f1",
 			wantUser: nil,
 			wantErr:  models.ErrNoRecord,
 		},
@@ -118,7 +118,7 @@ func TestUserModel_UpdateRefreshToken(t *testing.T) {
 	defer teardown()
 	model := UserModel{db}
 	c := &models.Credentials{
-		UserID: "DD4A5E3A-4D95-44C1-8AA3-E29FA9A29570",
+		UserID: "dd4a5e3a-4d95-44c1-8aa3-e29fa9a29570",
 		Token: models.Token{
 			RefreshToken:    "newnew",
 			RefreshTokenExp: parseTime("2019-04-17T11:57:00+00:00", t),
@@ -127,7 +127,7 @@ func TestUserModel_UpdateRefreshToken(t *testing.T) {
 	err := model.UpdateRefreshToken(c)
 	assert.Nil(t, err, "failed to update refresh token")
 
-	c, err = model.GetCredentials("DD4A5E3A-4D95-44C1-8AA3-E29FA9A29570")
+	c, err = model.GetCredentials("dd4a5e3a-4d95-44c1-8aa3-e29fa9a29570")
 	assert.Nil(t, err, "failed to read test user")
 	assert.Equal(t, "newnew", c.Token.RefreshToken, "invalid refresh token")
 	assert.Equal(t, time.Date(2019, 4, 17, 11, 57, 0, 0, time.UTC), c.Token.RefreshTokenExp, "invalid exp time")
@@ -141,14 +141,14 @@ func TestUserModel_UpdateUser(t *testing.T) {
 	defer teardown()
 	model := UserModel{db}
 	u := &models.User{
-		ID:     "DD4A5E3A-4D95-44C1-8AA3-E29FA9A29570",
+		ID:     "dd4a5e3a-4d95-44c1-8aa3-e29fa9a29570",
 		Name:   "updated name",
 		Email:  "updated@email.com",
 		Status: "ACTIVE",
 	}
 	err := model.Update(u)
 	assert.Nil(t, err, "failed to update user status")
-	user, err := model.Get("DD4A5E3A-4D95-44C1-8AA3-E29FA9A29570")
+	user, err := model.Get("dd4a5e3a-4d95-44c1-8aa3-e29fa9a29570")
 	assert.Nil(t, err, "failed to read test user")
 	if assert.NotNil(t, user) {
 		assert.Equal(t, "ACTIVE", user.Status, "invalid user status")
@@ -164,18 +164,18 @@ func TestUserModel_Delete(t *testing.T) {
 	db, teardown := newTestDB(t)
 	defer teardown()
 	model := UserModel{db}
-	user, err := model.Get("40AFBC9A-27E3-4B38-97F9-2930B8790A9F")
+	user, err := model.Get("40afbc9a-27e3-4b38-97f9-2930b8790a9f")
 	assert.Nil(t, err)
 	assert.NotNil(t, user, "can't find test user")
-	err = model.Delete("40AFBC9A-27E3-4B38-97F9-2930B8790A9F")
+	err = model.Delete("40afbc9a-27e3-4b38-97f9-2930b8790a9f")
 	assert.Nil(t, err)
-	_, err = model.Get("40AFBC9A-27E3-4B38-97F9-2930B8790A9F")
+	_, err = model.Get("40afbc9a-27e3-4b38-97f9-2930b8790a9f")
 	assert.Equal(t, models.ErrNoRecord, err, "user still in the database")
-	_, err = model.GetCredentials("40AFBC9A-27E3-4B38-97F9-2930B8790A9F")
+	_, err = model.GetCredentials("40afbc9a-27e3-4b38-97f9-2930b8790a9f")
 	assert.Equal(t, models.ErrNoRecord, err, "credentials still in the database")
 
 	deckModel := DeckModel{db}
-	decks, err := deckModel.GetForUser("40AFBC9A-27E3-4B38-97F9-2930B8790A9F")
+	decks, err := deckModel.GetForUser("40afbc9a-27e3-4b38-97f9-2930b8790a9f")
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(decks))
 }
