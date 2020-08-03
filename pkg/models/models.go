@@ -48,6 +48,10 @@ type Token struct {
 	RefreshTokenExp time.Time `json:"refresh_token_exp,omitempty"`
 }
 
+func (t Token) RefreshTokenExpired() bool {
+	return time.Now().After(t.RefreshTokenExp)
+}
+
 type Stats struct {
 	DecksCount int `json:"decks_count"`
 	CardsCount int `json:"cards_count"`

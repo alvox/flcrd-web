@@ -118,11 +118,13 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 		app.emailOrPasswordIncorrect(w)
 		return
 	}
-	credentials.Token.RefreshToken, credentials.Token.RefreshTokenExp = generateRefreshToken()
-	err = app.users.UpdateRefreshToken(credentials)
-	if err != nil {
-		app.serverError(w, err)
-		return
+	if credentials.Token.RefreshTokenExpired() {
+		credentials.Token.RefreshToken, credentials.Token.RefreshTokenExp = generateRefreshToken()
+		err = app.users.UpdateRefreshToken(credentials)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
 	}
 	accessToken, err := generateAccessToken(existingUser.ID)
 	if err != nil {
