@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"github.com/rs/zerolog/log"
 	"net/http"
 )
 
@@ -47,10 +48,12 @@ func ParseAuthRequest(r *http.Request) *AuthRequest {
 
 func parse(r *http.Request, i interface{}) bool {
 	if r.Body == nil {
+		log.Error().Msg("request body is empty")
 		return false
 	}
 	err := json.NewDecoder(r.Body).Decode(i)
 	if err != nil {
+		log.Error().Err(err).Msg("can't parse request body")
 		return false
 	}
 	return true

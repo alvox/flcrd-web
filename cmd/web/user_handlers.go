@@ -8,6 +8,7 @@ import (
 )
 
 func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
+	// todo: refactor parsing + validation to the separate method
 	auth := models.ParseAuthRequest(r)
 	if auth == nil {
 		app.badRequest(w)
@@ -29,20 +30,24 @@ func (app *application) registerUser(w http.ResponseWriter, r *http.Request) {
 	pwdHash, err := hashAndSalt(auth.Password)
 	if err != nil {
 		app.serverError(w, err)
+		return
 	}
 	credentials := NewCredentials(pwdHash)
 	user := NewUser(*auth)
 	userId, err := app.users.Create(&user, &credentials)
 	if err != nil {
 		app.serverError(w, err)
+		return
 	}
 	createdUser, err := app.users.Get(*userId)
 	if err != nil {
 		app.serverError(w, err)
+		return
 	}
 	accessToken, err := generateAccessToken(*userId)
 	if err != nil {
 		app.serverError(w, err)
+		return
 	}
 	createdUser.Token.AccessToken = *accessToken
 	go app.sendConfirmation(createdUser.ID, createdUser.Name, createdUser.Email)
@@ -249,12 +254,12 @@ func (app *application) sendConfirmation(userID, userName, email string) {
 	code := generateVerificationCode(userID)
 	c, err := app.verification.Create(code)
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Send()
 		return
 	}
 	result, err := app.mailSender.SendConfirmation(email, userName, c)
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Send()
 		return
 	}
 	log.Info().Str("ID", result.Id).Str("Message", result.Message).Msg("Email sent")
