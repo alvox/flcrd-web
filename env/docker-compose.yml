@@ -24,7 +24,7 @@ services:
   flcrd-api:
     container_name: flcrd-api
     image: docker.pkg.github.com/alvox/flcrd-web/flcrd-api:latest
-    restart: unless-stopped
+#    restart: unless-stopped
     ports:
       - 5000:5000
     environment:

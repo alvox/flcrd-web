@@ -2,6 +2,7 @@ package models
 
 import (
 	"regexp"
+	"unicode/utf8"
 )
 
 var r = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
@@ -13,7 +14,7 @@ func (u User) Validate(validateName bool) *ValidationErrors {
 	if validateName && u.Name == "" {
 		errs.Add("name", "field is required")
 	}
-	if validateName && u.Name != "" && len(u.Name) > 50 {
+	if validateName && u.Name != "" && utf8.RuneCountInString(u.Name) > 50 {
 		errs.Add("name", "max length is 50 characters")
 	}
 	return errs
@@ -25,7 +26,7 @@ func (u User) ValidateForUpdate() *ValidationErrors {
 	if u.Name == "" {
 		errs.Add("name", "field is required")
 	}
-	if u.Name != "" && len(u.Name) > 50 {
+	if u.Name != "" && utf8.RuneCountInString(u.Name) > 50 {
 		errs.Add("name", "max length is 50 characters")
 	}
 	return errs
@@ -37,7 +38,7 @@ func validateEmail(email string) *ValidationErrors {
 	if email == "" {
 		errs.Add("email", "field is required")
 	}
-	if email != "" && len(email) > 120 {
+	if email != "" && utf8.RuneCountInString(email) > 120 {
 		errs.Add("email", "max length is 120 characters")
 	}
 	if email != "" && !r.MatchString(email) {
@@ -53,10 +54,10 @@ func (d Deck) Validate() *ValidationErrors {
 	if d.Name == "" {
 		errs.Add("name", "field is required")
 	}
-	if len(d.Name) > 50 {
+	if utf8.RuneCountInString(d.Name) > 50 {
 		errs.Add("name", "max length is 50 characters")
 	}
-	if len(d.Description) > 250 {
+	if utf8.RuneCountInString(d.Description) > 250 {
 		errs.Add("description", "max length is 250 characters")
 	}
 	return errs
@@ -81,13 +82,14 @@ func (f Flashcard) Validate() *ValidationErrors {
 	if f.Front == "" {
 		errs.Add("front", "field is required")
 	}
-	if len(f.Front) > 250 {
+	if utf8.RuneCountInString(f.Front) > 250 {
 		errs.Add("front", "max length is 250 characters")
 	}
 	if f.Rear == "" {
 		errs.Add("rear", "field is required")
 	}
-	if len(f.Rear) > 250 {
+
+	if utf8.RuneCountInString(f.Rear) > 250 {
 		errs.Add("rear", "max length is 250 characters")
 	}
 	return errs
@@ -111,14 +113,14 @@ func (a AuthRequest) Validate(validateName bool) *ValidationErrors {
 	if validateName && a.Name == "" {
 		errs.Add("name", "field is required")
 	}
-	if validateName && a.Name != "" && len(a.Name) > 50 {
+	if validateName && a.Name != "" && utf8.RuneCountInString(a.Name) > 50 {
 		errs.Add("name", "max length is 50 characters")
 	}
 	if a.Password == "" {
 		errs.Add("password", "field is required")
 	}
-	if a.Password != "" && len(a.Password) < 5 || len(a.Password) > 30 {
-		errs.Add("password", "min length is 5 characters, max length is 30 characters")
+	if a.Password != "" && utf8.RuneCountInString(a.Password) < 5 || utf8.RuneCountInString(a.Password) > 50 {
+		errs.Add("password", "min length is 5 characters, max length is 50 characters")
 	}
 	return errs
 }
