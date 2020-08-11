@@ -2,15 +2,17 @@ package models
 
 import (
 	"encoding/json"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/rs/zerolog/log"
 	"net/http"
 )
 
-func ParseUser(r *http.Request) *User {
+func ParseUser(r *http.Request, sanitizer *bluemonday.Policy) *User {
 	var user User
 	if ok := parse(r, &user); !ok {
 		return nil
 	}
+	user.Name = sanitizer.Sanitize(user.Name)
 	return &user
 }
 
@@ -22,19 +24,23 @@ func ParseTokens(r *http.Request) *Token {
 	return &token
 }
 
-func ParseDeck(r *http.Request) *Deck {
+func ParseDeck(r *http.Request, sanitizer *bluemonday.Policy) *Deck {
 	var deck Deck
 	if ok := parse(r, &deck); !ok {
 		return nil
 	}
+	deck.Name = sanitizer.Sanitize(deck.Name)
+	deck.Description = sanitizer.Sanitize(deck.Description)
 	return &deck
 }
 
-func ParseFlashcard(r *http.Request) *Flashcard {
+func ParseFlashcard(r *http.Request, sanitizer *bluemonday.Policy) *Flashcard {
 	var flashcard Flashcard
 	if ok := parse(r, &flashcard); !ok {
 		return nil
 	}
+	flashcard.Front = sanitizer.Sanitize(flashcard.Front)
+	flashcard.Rear = sanitizer.Sanitize(flashcard.Rear)
 	return &flashcard
 }
 

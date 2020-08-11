@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v4/log/zerologadapter"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"net/http"
@@ -52,6 +53,7 @@ type application struct {
 	mailSender interface {
 		SendConfirmation(string, string, string) (*SendMessageResponse, error)
 	}
+	sanitizer *bluemonday.Policy
 }
 
 func main() {
@@ -76,6 +78,7 @@ func main() {
 			baseUrl: *mailUrl,
 			apiKey:  *mailKey,
 		},
+		sanitizer: bluemonday.UGCPolicy(),
 	}
 
 	srv := &http.Server{
@@ -85,6 +88,7 @@ func main() {
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
+
 	initJwt(*key)
 	log.Info().Msg(fmt.Sprintf("Starting server on %s port", *port))
 	err = srv.ListenAndServe()

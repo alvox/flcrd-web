@@ -7,7 +7,7 @@ import (
 )
 
 func (app *application) createDeck(w http.ResponseWriter, r *http.Request) {
-	deck := models.ParseDeck(r)
+	deck := models.ParseDeck(r, app.sanitizer)
 	if deck == nil {
 		app.badRequest(w)
 		return
@@ -74,7 +74,7 @@ func (app *application) getDeck(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) updateDeck(w http.ResponseWriter, r *http.Request) {
-	deck := models.ParseDeck(r)
+	deck := models.ParseDeck(r, app.sanitizer)
 	if deck == nil {
 		app.badRequest(w)
 		return

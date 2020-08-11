@@ -64,7 +64,7 @@ func (app *application) getUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) updateUser(w http.ResponseWriter, r *http.Request) {
-	user := models.ParseUser(r)
+	user := models.ParseUser(r, app.sanitizer)
 	if user == nil {
 		app.badRequest(w)
 		return
