@@ -88,9 +88,14 @@ func (f Flashcard) Validate() *ValidationErrors {
 	if f.Rear == "" {
 		errs.Add("rear", "field is required")
 	}
-
 	if utf8.RuneCountInString(f.Rear) > 250 {
 		errs.Add("rear", "max length is 250 characters")
+	}
+	if f.FrontType == "" {
+		errs.Add("front_type", "field is required")
+	}
+	if f.RearType == "" {
+		errs.Add("rear_type", "field is required")
 	}
 	return errs
 }

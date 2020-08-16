@@ -16,11 +16,13 @@ create table flcrd.deck (
 create unique index deck_name_user_idx on flcrd.deck(name, created_by);
 
 create table flcrd.flashcard (
-    id      uuid      not null default uuid_generate_v4(),
-    deck_id uuid      not null references flcrd.deck on delete cascade,
-    front   text      not null,
-    rear    text      not null,
-    created timestamp not null default now(),
+    id         uuid      not null default uuid_generate_v4(),
+    deck_id    uuid      not null references flcrd.deck on delete cascade,
+    front      text      not null,
+    front_type text      not null,
+    rear       text      not null,
+    rear_type  text      not null,
+    created    timestamp not null default now(),
 
     primary key (id)
 );

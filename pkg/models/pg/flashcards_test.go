@@ -9,17 +9,21 @@ import (
 
 var testFlashcards = [2]*models.Flashcard{
 	{
-		ID:      "9f814806-e2df-4598-a323-1380d47b9c35",
-		DeckID:  "9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e",
-		Front:   "Test Front 1 1",
-		Rear:    "Test Rear 1 1",
-		Created: time.Date(2019, 1, 1, 10, 0, 0, 0, time.UTC),
+		ID:        "9f814806-e2df-4598-a323-1380d47b9c35",
+		DeckID:    "9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e",
+		Front:     "Test Front 1 1",
+		FrontType: "TEXT",
+		Rear:      "Test Rear 1 1",
+		RearType:  "TEXT",
+		Created:   time.Date(2019, 1, 1, 10, 0, 0, 0, time.UTC),
 	}, {
-		ID:      "a5f65e8d-ca03-4d3e-978e-f5a612881231",
-		DeckID:  "2601da50-56a6-41a1-a92e-5624598a7d19",
-		Front:   "Test Front 2 2",
-		Rear:    "Test Rear 2 2",
-		Created: time.Date(2019, 5, 5, 15, 55, 0, 0, time.UTC),
+		ID:        "a5f65e8d-ca03-4d3e-978e-f5a612881231",
+		DeckID:    "2601da50-56a6-41a1-a92e-5624598a7d19",
+		Front:     "Test Front 2 2",
+		FrontType: "TEXT",
+		Rear:      "https://s3/testuser/testdeck/testimg.jpeg",
+		RearType:  "IMAGE_URL",
+		Created:   time.Date(2019, 5, 5, 15, 55, 0, 0, time.UTC),
 	},
 }
 
@@ -32,9 +36,11 @@ func TestFlashcardModel_Create_Positive(t *testing.T) {
 	model := FlashcardModel{db}
 
 	c := &models.Flashcard{
-		DeckID: "9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e",
-		Front:  "Test Front",
-		Rear:   "Test Rear",
+		DeckID:    "9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e",
+		Front:     "Test Front",
+		FrontType: "TEXT",
+		Rear:      "Test Rear",
+		RearType:  "https://testurl",
 	}
 
 	id, err := model.Create(c)
@@ -44,6 +50,8 @@ func TestFlashcardModel_Create_Positive(t *testing.T) {
 	require.Equal(t, "9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e", flashcard.DeckID)
 	require.Equal(t, "Test Front", flashcard.Front)
 	require.Equal(t, "Test Rear", flashcard.Rear)
+	require.Equal(t, "TEXT", flashcard.FrontType)
+	require.Equal(t, "https://testurl", flashcard.RearType)
 }
 
 func TestFlashcardModel_Create_InvalidDeck(t *testing.T) {
@@ -54,9 +62,11 @@ func TestFlashcardModel_Create_InvalidDeck(t *testing.T) {
 	defer teardown()
 	model := FlashcardModel{db}
 	c := &models.Flashcard{
-		DeckID: "7af65126-d46c-4797-a329-09d283acc664",
-		Front:  "Test Front",
-		Rear:   "Test Rear",
+		DeckID:    "7af65126-d46c-4797-a329-09d283acc664",
+		Front:     "Test Front",
+		FrontType: "TEXT",
+		Rear:      "Test Rear",
+		RearType:  "TEXT",
 	}
 	_, err := model.Create(c)
 	require.Equal(t, models.ErrDeckNotFound, err)
@@ -172,7 +182,9 @@ func TestFlashcardModel_Update_Positive(t *testing.T) {
 	model := FlashcardModel{db}
 	flashcard := testFlashcards[0]
 	flashcard.Front = "Updated Front"
-	flashcard.Rear = "Updated Rear"
+	flashcard.FrontType = "TEXT"
+	flashcard.Rear = "https://s3/updatedurl"
+	flashcard.RearType = "IMAGE_URL"
 	err := model.Update(flashcard)
 	require.Nil(t, err)
 	updated, err := model.Get("9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e", "9f814806-e2df-4598-a323-1380d47b9c35")

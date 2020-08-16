@@ -10,11 +10,13 @@ var ErrDeckNotFound = errors.New("models: deck does not exist")
 var ErrUniqueViolation = errors.New("models: unique violation")
 
 type Flashcard struct {
-	ID      string    `json:"id"`
-	DeckID  string    `json:"deck_id"`
-	Front   string    `json:"front"`
-	Rear    string    `json:"rear"`
-	Created time.Time `json:"created"`
+	ID        string    `json:"id"`
+	DeckID    string    `json:"deck_id"`
+	Front     string    `json:"front"`
+	FrontType string    `json:"front_type"`
+	Rear      string    `json:"rear"`
+	RearType  string    `json:"rear_type"`
+	Created   time.Time `json:"created"`
 }
 
 type Deck struct {
