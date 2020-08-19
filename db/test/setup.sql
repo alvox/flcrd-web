@@ -76,7 +76,7 @@ values ('9F814806-E2DF-4598-A323-1380D47B9C35', '9F2556FB-0B84-4B8D-AB0A-B5ACB0C
        ('1CFE647E-3D5F-4C6E-B935-281EFC61E5C9', '9F2556FB-0B84-4B8D-AB0A-B5ACB0C89F6E', 'Test Front 1 2', 'TEXT', 'Test Rear 1 2', 'TEXT', now()),
        ('4686D1B1-6776-4C25-947A-E1285E1B538F', '9F2556FB-0B84-4B8D-AB0A-B5ACB0C89F6E', 'Test Front 1 3', 'TEXT', 'Test Rear 1 3', 'TEXT', now()),
        ('CE233F42-4D4C-4E67-B70B-2B5735916687', '2601DA50-56A6-41A1-A92E-5624598A7D19', 'Test Front 2 1', 'TEXT', 'Test Rear 2 1', 'TEXT', now()),
-       ('A5F65E8D-CA03-4D3E-978E-F5A612881231', '2601DA50-56A6-41A1-A92E-5624598A7D19', 'Test Front 2 2', 'TEXT', 'https://s3/testuser/testdeck/testimg.jpeg', 'IMAGE_URL', '2019-05-05 15:55:00');
+       ('A5F65E8D-CA03-4D3E-978E-F5A612881231', '2601DA50-56A6-41A1-A92E-5624598A7D19', 'Test Front 2 2', 'TEXT', 'https://s3/testuser/testdeck/testimg.jpeg', 'IMAGE', '2019-05-05 15:55:00');
 
 insert into flcrd.verification_code (user_id, code, code_exp)
 values ('DD4A5E3A-4D95-44C1-8AA3-E29FA9A29570', 'code_for_user_2', '2019-01-01 09:00:00');

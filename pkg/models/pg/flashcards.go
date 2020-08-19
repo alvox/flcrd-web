@@ -14,10 +14,10 @@ type FlashcardModel struct {
 
 func (m *FlashcardModel) Create(f *models.Flashcard) (*string, error) {
 	stmt :=
-		`insert into flcrd.flashcard (deck_id, front, front_type, rear, rear_type) 
-         values ($1, $2, $3, $4, $5) returning id;`
+		`insert into flcrd.flashcard (id, deck_id, front, front_type, rear, rear_type) 
+         values ($1, $2, $3, $4, $5, $6) returning id;`
 	var id string
-	err := m.DB.QueryRow(context.Background(), stmt, f.DeckID, f.Front, f.FrontType, f.Rear, f.RearType).Scan(&id)
+	err := m.DB.QueryRow(context.Background(), stmt, f.ID, f.DeckID, f.Front, f.FrontType, f.Rear, f.RearType).Scan(&id)
 	if err != nil {
 		if err, ok := err.(*pgconn.PgError); ok {
 			if "flashcard_deck_id_fkey" == err.ConstraintName {

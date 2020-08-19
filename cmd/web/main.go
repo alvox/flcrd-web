@@ -6,6 +6,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/jackc/pgx/v4/log/zerologadapter"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/microcosm-cc/bluemonday"
@@ -53,16 +54,19 @@ type application struct {
 	mailSender interface {
 		SendConfirmation(string, string, string) (*SendMessageResponse, error)
 	}
-	sanitizer *bluemonday.Policy
+	sanitizer      *bluemonday.Policy
+	awsCredentials *credentials.Credentials
 }
 
 func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	port := flag.String("port", ":5000", "Application port")
+	port := flag.String("port", ":5001", "Application port")
 	dsn := flag.String("dsn", "postgres://flcrd:flcrd@localhost/flcrd?sslmode=disable", "Postgres data source")
 	key := flag.String("appkey", "test-key", "Application key")
 	mailUrl := flag.String("mail_api_url", "", "URL to the email service")
 	mailKey := flag.String("mail_api_key", "", "API key to the email service")
+	awsID := flag.String("aws_id", "", "AWS key")
+	awsSecret := flag.String("aws_secret", "", "AWS secret")
 	flag.Parse()
 
 	db, err := connectDB(*dsn)
@@ -78,7 +82,8 @@ func main() {
 			baseUrl: *mailUrl,
 			apiKey:  *mailKey,
 		},
-		sanitizer: bluemonday.UGCPolicy(),
+		awsCredentials: credentials.NewStaticCredentials(*awsID, *awsSecret, ""),
+		sanitizer:      bluemonday.UGCPolicy(),
 	}
 
 	srv := &http.Server{

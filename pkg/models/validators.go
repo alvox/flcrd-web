@@ -79,23 +79,23 @@ func (d Deck) ValidateWithID(id string) *ValidationErrors {
 func (f Flashcard) Validate() *ValidationErrors {
 	errs := NewValidationErrors()
 
-	if f.Front == "" {
+	if f.FrontType != "TEXT" && f.FrontType != "IMAGE" {
+		errs.Add("front_type", "should be either 'TEXT' or 'IMAGE'")
+	}
+	if f.RearType != "TEXT" && f.RearType != "IMAGE" {
+		errs.Add("rear_type", "should be either 'TEXT' or 'IMAGE'")
+	}
+	if f.FrontType == "TEXT" && f.Front == "" {
 		errs.Add("front", "field is required")
 	}
 	if utf8.RuneCountInString(f.Front) > 250 {
 		errs.Add("front", "max length is 250 characters")
 	}
-	if f.Rear == "" {
+	if f.RearType == "TEXT" && f.Rear == "" {
 		errs.Add("rear", "field is required")
 	}
 	if utf8.RuneCountInString(f.Rear) > 250 {
 		errs.Add("rear", "max length is 250 characters")
-	}
-	if f.FrontType == "" {
-		errs.Add("front_type", "field is required")
-	}
-	if f.RearType == "" {
-		errs.Add("rear_type", "field is required")
 	}
 	return errs
 }
