@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/gorilla/mux"
+	"github.com/rs/zerolog/log"
 	uuid "github.com/satori/go.uuid"
 	"net/http"
 	"path/filepath"
@@ -113,13 +114,18 @@ func (app *application) updateFlashcard(w http.ResponseWriter, r *http.Request) 
 		app.validationError(w, errs)
 		return
 	}
+	f.ID = mux.Vars(r)["flashcardID"]
 	f.DeckID = mux.Vars(r)["deckID"]
-	_, err := app.decks.Get(f.DeckID)
-	if modelError(app, err, w, "deck") {
+	existing, err := app.flashcards.Get(f.DeckID, f.ID)
+	if modelError(app, err, w, "flashcard") {
 		return
 	}
-	f.ID = mux.Vars(r)["flashcardID"]
-
+	if existing.FrontType == "IMAGE" && existing.Front != f.Front {
+		deleteImageFromS3(existing.Front, app.awsCredentials)
+	}
+	if existing.RearType == "IMAGE" && existing.Rear != f.Rear {
+		deleteImageFromS3(existing.Rear, app.awsCredentials)
+	}
 	if f.FrontType == "IMAGE" {
 		fileName, err := uploadImageToS3("front", f.ID, r, app.awsCredentials)
 		if err != nil {
@@ -151,6 +157,16 @@ func (app *application) deleteFlashcard(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	flashcardID := mux.Vars(r)["flashcardID"]
+	f, err := app.flashcards.Get(deckID, flashcardID)
+	if modelError(app, err, w, "flashcard") {
+		return
+	}
+	if f.FrontType == "IMAGE" {
+		deleteImageFromS3(f.Front, app.awsCredentials)
+	}
+	if f.RearType == "IMAGE" {
+		deleteImageFromS3(f.Rear, app.awsCredentials)
+	}
 	err = app.flashcards.Delete(deckID, flashcardID)
 	if err != nil {
 		app.serverError(w, err)
@@ -191,4 +207,24 @@ func uploadImageToS3(side, cardID string, r *http.Request, c *credentials.Creden
 		return "", err
 	}
 	return fileName, nil
+}
+
+func deleteImageFromS3(fileName string, c *credentials.Credentials) {
+	s, err := session.NewSession(&aws.Config{
+		Region:      aws.String("us-east-1"),
+		Credentials: c,
+	})
+	if err != nil {
+		log.Error().Err(err).Msg("delete image from s3 failed")
+		return
+	}
+	_, err = s3.New(s).DeleteObject(&s3.DeleteObjectInput{
+		Key:    aws.String(fileName),
+		Bucket: aws.String("flcrd-img-orig"),
+	})
+	if err != nil {
+		log.Error().Err(err).Msg("delete image from s3 failed")
+		return
+	}
+	log.Info().Msg(fmt.Sprintf("image %s was deleted", fileName))
 }
