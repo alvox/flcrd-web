@@ -136,13 +136,7 @@ func (app *application) updateFlashcard(w http.ResponseWriter, r *http.Request) 
 		}
 		f.Rear = fileName
 	}
-
-	err = app.flashcards.Update(f)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-	f, err = app.flashcards.Get(f.DeckID, f.ID)
+	f, err = app.flashcards.Update(f)
 	if err != nil {
 		app.serverError(w, err)
 		return

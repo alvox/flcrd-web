@@ -32,7 +32,7 @@ type application struct {
 		Get(string, string) (*models.Flashcard, error)
 		GetForUser(string, string) ([]*models.Flashcard, error)
 		GetPublic(string) ([]*models.Flashcard, error)
-		Update(*models.Flashcard) error
+		Update(*models.Flashcard) (*models.Flashcard, error)
 		Delete(string, string) error
 	}
 	users interface {

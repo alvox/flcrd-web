@@ -182,16 +182,15 @@ func TestFlashcardModel_Update_Positive(t *testing.T) {
 	db, teardown := newTestDB(t)
 	defer teardown()
 	model := FlashcardModel{db}
-	flashcard := testFlashcards[0]
-	flashcard.Front = "Updated Front"
-	flashcard.FrontType = "TEXT"
-	flashcard.Rear = "https://s3/updatedurl"
-	flashcard.RearType = "IMAGE"
-	err := model.Update(flashcard)
+	f := testFlashcards[0]
+	f.Front = "Updated Front"
+	f.FrontType = "TEXT"
+	f.Rear = "https://s3/updatedurl"
+	f.RearType = "IMAGE"
+	updated, err := model.Update(f)
 	require.Nil(t, err)
-	updated, err := model.Get("9f2556fb-0b84-4b8d-ab0a-b5acb0c89f6e", "9f814806-e2df-4598-a323-1380d47b9c35")
 	require.Nil(t, err)
-	require.Equal(t, flashcard, updated)
+	require.Equal(t, f, updated)
 }
 
 func TestFlashcardModel_UpdateNonExistentDeck(t *testing.T) {
@@ -208,7 +207,7 @@ func TestFlashcardModel_UpdateNonExistentDeck(t *testing.T) {
 		Rear:    "Updated Description 1",
 		Created: time.Date(2019, 1, 1, 10, 0, 0, 0, time.UTC),
 	}
-	err := model.Update(flashcard)
+	_, err := model.Update(flashcard)
 	require.Equal(t, models.ErrDeckNotFound, err)
 }
 
@@ -226,7 +225,7 @@ func TestFlashcardModel_UpdateNonExistentFlashcard(t *testing.T) {
 		Rear:    "Updated Description 1",
 		Created: time.Date(2019, 1, 1, 10, 0, 0, 0, time.UTC),
 	}
-	err := model.Update(flashcard)
+	_, err := model.Update(flashcard)
 	require.Equal(t, models.ErrNoRecord, err)
 }
 

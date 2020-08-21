@@ -98,22 +98,41 @@ func (m *FlashcardModel) GetPublic(deckID string) ([]*models.Flashcard, error) {
 	return flashcards, nil
 }
 
-func (m *FlashcardModel) Update(f *models.Flashcard) error {
-	stmt :=
-		`update flcrd.flashcard set deck_id = $1, front = $2, front_type = $3, rear = $4, rear_type = $5 where id = $6;`
-	r, err := m.DB.Exec(context.Background(), stmt, f.DeckID, f.Front, f.FrontType, f.Rear, f.RearType, f.ID)
+func (m *FlashcardModel) Update(f *models.Flashcard) (*models.Flashcard, error) {
+	ctx := context.Background()
+	trx, err := m.DB.Begin(ctx)
 	if err != nil {
+		return nil, err
+	}
+	stmt :=
+		`update flcrd.flashcard set deck_id = $1, front = $2, front_type = $3, rear = $4, rear_type = $5 
+         where id = $6;`
+	r, err := trx.Exec(ctx, stmt, f.DeckID, f.Front, f.FrontType, f.Rear, f.RearType, f.ID)
+	if err != nil {
+		_ = trx.Rollback(ctx)
 		if err, ok := err.(*pgconn.PgError); ok {
 			if "flashcard_deck_id_fkey" == err.ConstraintName {
-				return models.ErrDeckNotFound
+				return nil, models.ErrDeckNotFound
 			}
 		}
-		return err
+		return nil, err
 	}
 	if err := rowsCnt(r); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	stmt =
+		`select id, deck_id, front, front_type, rear, rear_type, created 
+         from flcrd.flashcard where id = $1 and deck_id = $2;`
+	err = trx.QueryRow(context.Background(), stmt, f.ID, f.DeckID).
+		Scan(&f.ID, &f.DeckID, &f.Front, &f.FrontType, &f.Rear, &f.RearType, &f.Created)
+	if err != nil {
+		return nil, err
+	}
+	err = trx.Commit(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
 }
 
 func (m *FlashcardModel) Delete(deckID, flashcardID string) error {
