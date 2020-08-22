@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/gorilla/mux"
@@ -38,7 +37,7 @@ func (app *application) createFlashcard(w http.ResponseWriter, r *http.Request) 
 	f.ID = uuid.NewV4().String()
 
 	if f.FrontType == "IMAGE" {
-		fileName, err := uploadImageToS3("front", f.ID, r, app.awsCredentials)
+		fileName, err := uploadImageToS3("front", f.ID, r, app.s3Config)
 		if err != nil {
 			app.serverError(w, err)
 			return
@@ -46,7 +45,7 @@ func (app *application) createFlashcard(w http.ResponseWriter, r *http.Request) 
 		f.Front = fileName
 	}
 	if f.RearType == "IMAGE" {
-		fileName, err := uploadImageToS3("rear", f.ID, r, app.awsCredentials)
+		fileName, err := uploadImageToS3("rear", f.ID, r, app.s3Config)
 		if err != nil {
 			app.serverError(w, err)
 			return
@@ -121,13 +120,13 @@ func (app *application) updateFlashcard(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	if existing.FrontType == "IMAGE" && existing.Front != f.Front {
-		deleteImageFromS3(existing.Front, app.awsCredentials)
+		deleteImageFromS3(existing.Front, app.s3Config)
 	}
 	if existing.RearType == "IMAGE" && existing.Rear != f.Rear {
-		deleteImageFromS3(existing.Rear, app.awsCredentials)
+		deleteImageFromS3(existing.Rear, app.s3Config)
 	}
 	if f.FrontType == "IMAGE" {
-		fileName, err := uploadImageToS3("front", f.ID, r, app.awsCredentials)
+		fileName, err := uploadImageToS3("front", f.ID, r, app.s3Config)
 		if err != nil {
 			app.serverError(w, err)
 			return
@@ -135,7 +134,7 @@ func (app *application) updateFlashcard(w http.ResponseWriter, r *http.Request) 
 		f.Front = fileName
 	}
 	if f.RearType == "IMAGE" {
-		fileName, err := uploadImageToS3("rear", f.ID, r, app.awsCredentials)
+		fileName, err := uploadImageToS3("rear", f.ID, r, app.s3Config)
 		if err != nil {
 			app.serverError(w, err)
 			return
@@ -162,10 +161,10 @@ func (app *application) deleteFlashcard(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	if f.FrontType == "IMAGE" {
-		deleteImageFromS3(f.Front, app.awsCredentials)
+		deleteImageFromS3(f.Front, app.s3Config)
 	}
 	if f.RearType == "IMAGE" {
-		deleteImageFromS3(f.Rear, app.awsCredentials)
+		deleteImageFromS3(f.Rear, app.s3Config)
 	}
 	err = app.flashcards.Delete(deckID, flashcardID)
 	if err != nil {
@@ -176,14 +175,14 @@ func (app *application) deleteFlashcard(w http.ResponseWriter, r *http.Request) 
 }
 
 // todo: resize images if they're bigger than 1MB
-func uploadImageToS3(side, cardID string, r *http.Request, c *credentials.Credentials) (string, error) {
+func uploadImageToS3(side, cardID string, r *http.Request, c *S3Config) (string, error) {
 	file, fileHeader, err := r.FormFile(fmt.Sprintf("%s_image", side))
 	if err != nil {
 		return "", err
 	}
 	s, err := session.NewSession(&aws.Config{
 		Region:      aws.String("us-east-1"),
-		Credentials: c,
+		Credentials: c.Credentials,
 	})
 	if err != nil {
 		return "", err
@@ -198,7 +197,7 @@ func uploadImageToS3(side, cardID string, r *http.Request, c *credentials.Creden
 	fileName := fmt.Sprintf("images/%s/%s%s", cardID, side, filepath.Ext(fileHeader.Filename))
 
 	_, err = s3.New(s).PutObject(&s3.PutObjectInput{
-		Bucket: aws.String("flcrd-img-orig"),
+		Bucket: aws.String(c.Bucket),
 		Key:    aws.String(fileName),
 		ACL:    aws.String("public-read"),
 		Body:   bytes.NewReader(buffer),
@@ -209,10 +208,10 @@ func uploadImageToS3(side, cardID string, r *http.Request, c *credentials.Creden
 	return fileName, nil
 }
 
-func deleteImageFromS3(fileName string, c *credentials.Credentials) {
+func deleteImageFromS3(fileName string, c *S3Config) {
 	s, err := session.NewSession(&aws.Config{
 		Region:      aws.String("us-east-1"),
-		Credentials: c,
+		Credentials: c.Credentials,
 	})
 	if err != nil {
 		log.Error().Err(err).Msg("delete image from s3 failed")
@@ -220,7 +219,7 @@ func deleteImageFromS3(fileName string, c *credentials.Credentials) {
 	}
 	_, err = s3.New(s).DeleteObject(&s3.DeleteObjectInput{
 		Key:    aws.String(fileName),
-		Bucket: aws.String("flcrd-img-orig"),
+		Bucket: aws.String(c.Bucket),
 	})
 	if err != nil {
 		log.Error().Err(err).Msg("delete image from s3 failed")

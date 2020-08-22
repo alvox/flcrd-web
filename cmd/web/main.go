@@ -17,6 +17,11 @@ import (
 	"time"
 )
 
+type S3Config struct {
+	Credentials *credentials.Credentials
+	Bucket      string
+}
+
 type application struct {
 	decks interface {
 		Create(string, string, string, bool) (*string, error)
@@ -54,8 +59,8 @@ type application struct {
 	mailSender interface {
 		SendConfirmation(string, string, string) (*SendMessageResponse, error)
 	}
-	sanitizer      *bluemonday.Policy
-	awsCredentials *credentials.Credentials
+	sanitizer *bluemonday.Policy
+	s3Config  *S3Config
 }
 
 func main() {
@@ -67,6 +72,7 @@ func main() {
 	mailKey := flag.String("mail_api_key", "", "API key to the email service")
 	awsID := flag.String("aws_id", "", "AWS key")
 	awsSecret := flag.String("aws_secret", "", "AWS secret")
+	s3Bucket := flag.String("s3_bucket", "flcrd-img-dev", "S3 bucket name")
 	flag.Parse()
 
 	db, err := connectDB(*dsn)
@@ -82,8 +88,11 @@ func main() {
 			baseUrl: *mailUrl,
 			apiKey:  *mailKey,
 		},
-		awsCredentials: credentials.NewStaticCredentials(*awsID, *awsSecret, ""),
-		sanitizer:      bluemonday.UGCPolicy(),
+		s3Config: &S3Config{
+			Credentials: credentials.NewStaticCredentials(*awsID, *awsSecret, ""),
+			Bucket:      *s3Bucket,
+		},
+		sanitizer: bluemonday.UGCPolicy(),
 	}
 
 	srv := &http.Server{
