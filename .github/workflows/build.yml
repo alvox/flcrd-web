@@ -39,7 +39,15 @@ jobs:
       run: |
         docker login docker.pkg.github.com --username alvox --password $PKG_TOKEN
         docker push docker.pkg.github.com/alvox/flcrd-web/flcrd-api:latest
-    
+
+    - name: Install doctl
+      uses: digitalocean/action-doctl@v2
+      with:
+        token: ${{ secrets.do_token }}
+
+    - name: Deploy API
+      run: doctl compute ssh flcrd-01 --ssh-user flcrd --ssh-command '. ~/.profile; sh deploy-api.sh'
+
     - name: Notify
       uses: appleboy/telegram-action@master
       env:
